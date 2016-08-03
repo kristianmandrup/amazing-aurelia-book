@@ -31,13 +31,5 @@ For more fine grained control over your starting configuration, instead create a
 
 This runs the CLI in _advanced_ mode, specifically targeting ASP.NET Core. However it also works just fine without using .NET and gives you more options, such as selecting your CSS processor, preferred editor, unit testing on\/off and more...
 
-## Examining your project structure
-
-
-
-
-
-
-
-
+## 
 
