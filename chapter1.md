@@ -10,9 +10,13 @@ Just go to the [typescript](https://www.typescriptlang.org/) site and follow ins
 
 `npm install -g typescript`
 
+Also be sure to install typings, the tool to manage TypeScript typings \(ie. type definitions\)
+
+`npm install typings --global`
+
 ## Installing CLI
 
 We will start by installing
 
-Hello
+s
 
