@@ -111,5 +111,29 @@ The entry point for your app is by default `main.ts` which is linked to from the
 </body>
 ```
 
-hello
+The `main.ts` configures your Aurelia app and bootstraps it by calling start. When the app is ready (a promise) `then` it sets the root of the app to an element on the document, by default the body. Also by default it finds the `app.ts` file in `src` and uses it as the view model for the root element.
+
+```ts
+export function configure(aurelia: Aurelia) {
+  aurelia.use
+    .standardConfiguration()
+    .feature('resources');
+
+  aurelia.start().then(() => aurelia.setRoot());
+}
+```
+
+`app.ts` is thus a regular view model, and can be as simple as:
+
+```ts
+export class App { }
+```
+
+```html
+<template>
+  Hello World
+</template>
+```
+
+There you have it :)
 
