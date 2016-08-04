@@ -62,13 +62,13 @@ Let's first try to add a link to the `app.html` page
 <template>
 ```
 
-Obviously this won't work. 
+Obviously this won't work since the browser only knows to use the href to retrieve a `/contacts.html` file and render it as a new page.
 
-We should rarely use static routes like this however. Much better to let the Aurelia router take care of creating the routes for us.
+We need Aurelia routing mechanics to handle routes for us. The magical `route-href` attribute to the rescue!
 
 ## route-href attribute
 
-The `<a>` anchor tag supports a special attribute `route-href` which works with the current router. It can be used to automatically generate and update the HTML `href` attribute of the link and also handles finding and calling the route in question with the href. 
+Aurelia comes with a special attribute `route-href` which works with the current router. It can be used to automatically generate and update the HTML `href` attribute of the link. It also handles finding and calling the route in question with the `href`. 
 
 ```html
 <template>
@@ -77,7 +77,7 @@ The `<a>` anchor tag supports a special attribute `route-href` which works with 
 <template>
 ```
 
-If you want to pass data to the route you have to use a more advanced variant which we will look at later
+If you want to pass data to the route you have to use a more advanced variant with `params` which we will look at later when we go more in depth. For now let's keep it simple!
 
 You will notice that by default the full screen is swapped with the view of the route being routed to. In most real apps however, you want to have a basic single page layout and then swap out one or more regions of the page when you route to a new page, while keeping the surrounding layout in place.
 
@@ -91,18 +91,80 @@ If your route routes to multiple named views, you can have multiple named `<rout
 
 ### Multiple router views
 
-Let's create a layout with two named router views, one for the `main` content and one for the `sidebar`.
+Let's create a layout with two named router views, one for the `main-content` content and one for the `sidebar`.
 
 ```html
 <template>
   <section id="main" class="container main">
-    <router-view name="main" />
+    <router-view name="main-content" />
   </section>
   <section id="sidebar" class="container sidebar">
     <router-view name="sidebar" />
   </section>
 <template>
 ```
+
+Now create `articles` and `stocks` dummy VM/V pairs.
+
+`articles.ts`
+
+```ts
+export class Articles {
+}
+```
+
+`articles.html`
+
+```html
+<template>
+  <h1>Articles</h1>
+</template>
+```
+
+Stock quotes
+
+`stocks.ts`
+
+
+```ts
+export class Stocks {
+}
+```
+
+`stocks.html`
+
+```html
+<template>
+ <h1>Stocks</h1>
+</template>
+```
+
+Now let's update our router using the `viewPorts` key to define how to route to our two named viewports.
+
+```ts
+ config.map([
+ ...
+ { 
+  route: 'stocks', 
+  viewPorts: {
+    main: {moduleId: './articles'}, 
+    sidebar: {moduleId: './stocks'} 
+  }, 
+  name:'stocks', 
+  nav: true, 
+  title: 'Stocks' 
+  }
+ ]);
+```
+
+Sweet :)
+
+
+
+
+
+
+
 
 
 
