@@ -95,10 +95,10 @@ Let's create a layout with two named router views, one for the `main-content` co
 
 ```html
 <template>
-  <section id="main" class="container main">
+  <section id="main" class="container main page-host">
     <router-view name="main-content" />
   </section>
-  <section id="sidebar" class="container sidebar">
+  <section id="sidebar" class="container sidebar page-host">
     <router-view name="sidebar" />
   </section>
 <template>
