@@ -157,7 +157,17 @@ Now let's update our router using the `viewPorts` key to define how to route to 
  ]);
 ```
 
-Sweet :)
+## Layouts
+
+You can add a layout to a router view vie the special `layout` attribute as follows:
+
+```
+<template>
+  <div class="page-host">
+    <router-view layout="views/layout-default.html"></router-view>
+  </div>
+</template>
+```
 
 
 
