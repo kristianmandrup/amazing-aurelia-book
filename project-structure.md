@@ -137,3 +137,77 @@ export class App { }
 
 There you have it :)
 
+## Typings
+
+The folder `typings` is used by the TypeScript `typings` installer to install type definitions for 3rd party libaries written in Javascript.
+
+The preferred way to install typings is in `typings/globals`
+
+```bash
+/typings
+  /globals
+    angular-protractor/
+      index.d.ts
+      typings.json
+  index.d.ts
+```
+
+For example, to install `sortable.js` typings:
+
+`typings install dt~sortablejs --global`
+
+## .editorconfig
+
+The editor config can be used to configure conventions for your editor of choice. Most modern editors support this!
+
+Typically you might want to adjust indentation preferences
+
+```
+# 2 space indentation[**.*]indent_style = spaceindent_size = 2
+```
+
+## index.html
+
+index.html is the starting point of your app. 
+
+```
+ <body aurelia-app="main"> <script src="scripts/vendor-bundle.js" data-main="aurelia-bootstrapper"></script> </body>
+```
+
+The `aurelia-app="main"` attribute, tells Aurelia where to mount an aurelia app and which file to kick off the bootstrapping of that app.
+
+You can mount multiple apps on your `index.html` page if you like.
+
+```
+ <body>
+  <section aurelia-app="admin" />
+  <section aurelia-app="main" /> <script src="scripts/vendor-bundle.js" data-main="aurelia-bootstrapper"></script> </body>
+```
+
+Here we mount two apps `main` and `admin` each in their own section of the page. We will go more in depth on this approach later.
+
+## package.json
+
+Your node package manager (`npm`) config file. Here you define project information for npm such as `name`, `version` and `description` of your project along with development and runtime dependencies.
+
+## tsconfig.json
+
+Contains TypeScrupt compiler configurations.
+Key for Aurelia is `"experimentalDecorators":  true` which enables decorators in TypeScript. Aurelia relies heavily on decorators to minimize boiler plate cruft code in your code base. 
+
+## tsline.json
+
+Contains linting configurations for your TypeScript compiler.
+Linting is the art of checking that your code follows certain (strict) conventions so it stays clean.
+
+## typings.json
+
+Registry file used by `typings` binary to manage the type definitions installed.
+
+
+ 
+
+
+
+
+
