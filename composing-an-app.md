@@ -1,4 +1,4 @@
-# Composing an app
+# Basic composition
 
 In order to structure our app can start simple by composing it from several smaller elements, ie. pages or components. To start simple we can use the `<compose>` element to show how you can compose views from smaller components and elements. 
 
