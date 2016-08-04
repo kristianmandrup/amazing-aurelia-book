@@ -53,7 +53,7 @@ export class Contacts {
 </template>
 ```
 
-Now add a link to the `app.html` page
+Let's first try to add a link to the `app.html` page
 
 ```html
 <template>
@@ -62,9 +62,11 @@ Now add a link to the `app.html` page
 <template>
 ```
 
+Obviously this won't work. 
+
 We should rarely use static routes like this however. Much better to let the Aurelia router take care of creating the routes for us.
 
-## route-href
+## route-href attribute
 
 The `<a>` anchor tag supports a special attribute `route-href` which works with the current router. It can be used to automatically generate and update the HTML `href` attribute of the link and also handles finding and calling the route in question with the href. 
 
@@ -81,9 +83,27 @@ You will notice that by default the full screen is swapped with the view of the 
 
 For this we need, Aurelia provides us with a `<router-view>` element which we will now look into.
 
-## Router views
+## router-view element
 
-The special `<router-view>` element acts as a placeholder for view content of routes being routed to. By convention if you only have a sinlge nameless `<router-view>` it will be filled in by the first view of the route.
+The special `<router-view>` element acts as a placeholder for view content of routes being routed to. By convention if you only have a single nameless `<router-view>` it will be filled in by the first view of the route being routed to.
+
+If your route routes to multiple named views, you can have multiple named `<router-view>` elements on your layout, designating a destination for each router view.
+
+### Multiple router views
+
+Let's create a layout with two named router views, one for the `main` content and one for the `sidebar`.
+
+```html
+<template>
+  <section id="main" class="container main">
+    <router-view name="main" />
+  </section>
+  <section id="sidebar" class="container sidebar">
+    <router-view name="sidebar" />
+  </section>
+<template>
+```
+
 
 
 
