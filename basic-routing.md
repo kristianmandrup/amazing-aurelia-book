@@ -41,7 +41,7 @@ The route is a pattern which is matched by the routing engine in order to determ
 The `moduleId` must link to a view model in your app. The moduleId is calculated relative to the app root, typically `/src`. 
 The view model activated can add its own router config to the (parent) router config to create a "nested" routing hierarchy.
 
-However please not that by default, nested routes are still essentially "flat". To make a truly nested router where routes extend a root base, we must currently do some heavy lifting which we will explore later on.
+However please not that by default, nested routes are evaluate relative to the parent router. To make a truly nested router where routes extend a root base, we must currently do some "heavy lifting", which we will explore later on...
 
 Now let's do some routing. First create a new `contacts` VM/V pair.
 
