@@ -137,14 +137,33 @@ Stock quotes
 
 ```ts
 export class Stocks {
+  quotes = [{
+    id: AAPL,
+    price: 105,
+  },
+  {
+    id: MSFT,
+    price: 56,
+  },
+  {
+    id: GOOGL,
+    price: 784,
+  }];
 }
 ```
 
 `stocks.html`
 
+Here we use the special `repeat.for` attribute provided by Aurelia, to iterate over the quotes and display the quote info using string interpolation via the well known `${}` syntax.
+
 ```html
 <template>
- <h1>Stocks</h1>
+  <h1>Stocks</h1>
+  <ul>
+    <li repeat.for="quote of quotes">
+      <span class="stock">${quote.id} ${quote.price}</span>
+    </li>
+  </ul>
 </template>
 ```
 
@@ -153,15 +172,15 @@ Now let's update our router using the `viewPorts` key to define how to route to 
 ```ts
  config.map([
  ...
- { 
-  route: 'stocks', 
+ {
+  route: 'stocks',
   viewPorts: {
-    main: {moduleId: './articles'}, 
-    sidebar: {moduleId: './stocks'} 
-  }, 
-  name:'stocks', 
-  nav: true, 
-  title: 'Stocks' 
+    main: {moduleId: './articles'},
+    sidebar: {moduleId: './stocks'}
+  },
+  name:'stocks',
+  nav: true,
+  title: 'Stocks'
   }
  ]);
 ```
@@ -170,20 +189,68 @@ Now let's update our router using the `viewPorts` key to define how to route to 
 
 You can add a layout to a router view vie the special `layout` attribute as follows:
 
-```
+```html
 <template>
   <div class="page-host">
-    <router-view layout="views/layout-default.html"></router-view>
+    <router-view layout="./layouts/default.html"></router-view>
   </div>
 </template>
 ```
 
+Now let's create our `layouts/default` layout view.
 
+```html
+<template>
+  <div class="left-content">
+    <slot name="aside-content"></slot>
+  </div>
+  <div class="right-content">
+    <slot name="main-content"></slot>
+  </div>
+</template>
+```
 
+Here we use the special `slot` element, which is part of the [Shadow DOM v1](https://developers.google.com/web/fundamentals/primers/shadowdom) as described in this [Aurelia blog post](http://blog.durandal.io/2016/05/23/aurelia-shadow-dom-v1-slots-prerelease/)
 
+TODO: more on using slots and layout...
 
+## Router navigation
 
+To display the navigation links to each route, we can iterate `router.navigation`. Then for each navigation item (route) we can check if it is active or not via `isActive` and display it accordingly.
 
+```html
+  <li repeat.for="row of router.navigation" class="${row.isActive ? 'active' : ''}">
+    <a href.bind="row.href">${row.title}</a>
+  </li>
+```
+
+We can use this to generate a full navigation menu, here using bootstrap.
+
+```html
+<template>
+    <nav class="navbar navbar-default navbar-static-top">
+      <div class="container">
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li repeat.for="row of router.navigation" class="${row.isActive ? 'active' : ''}">
+              <a href.bind="row.href">${row.title}</a>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li>
+              <a href="#">log out</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  <div class="container">
+    <div class="row">
+      <router-view class="col-md-8"></router-view>
+    </div>
+  </div>
+</template>
+```
 
 
 
