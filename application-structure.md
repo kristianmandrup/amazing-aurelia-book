@@ -1,4 +1,4 @@
-# Application structure
+# Basic app structure
 
 The CLI initially puts all the main application files in the root of your `src` folder.
 
@@ -14,5 +14,5 @@ export function configure(config: FrameworkConfiguration) { //config.globalResou
 
 More on resources later ;\)
 
-## 
+
 
