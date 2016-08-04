@@ -252,6 +252,8 @@ We can use this to generate a full navigation menu, here using bootstrap.
 </template>
 ```
 
+## Parameterized routing
+
 
 
 
