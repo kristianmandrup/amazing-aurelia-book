@@ -286,5 +286,34 @@ The `contact-list` view, from [Contact Manager](http://aurelia.io/hub.html#/doc/
 
 Notice that we use the form `route: contact; params.bind: {id:contact.id}` for the `route-href` attribute. the `params.bind` tells the router which parameters to bind to the route.
 
+## Child routers
+
+In your parent router config, such as in `app.ts` you simply link to a view model that is itself a router.
+
+`{ route: 'contacts',  moduleId: './contacts/index', nav: true, title:'Contacts' }`
+
+Then for the child route you inject the router and ...
+
+```ts
+import {Router} from 'aurelia-router';
+
+@inject(Router)
+export class Contacts {
+  constructor(router){
+    this.heading = 'Child Router';
+    this.router = router;
+
+    router.configure(config => {
+      config.map([
+        { route: 'contacts/details',  moduleId: './contacts/details',      nav: true, title:'Contact Details' },
+        { route: 'contacts/charts', moduleId: './contacts/charts', nav: true, title: 'Contact Charts' },
+      ]);
+    });
+  }
+}
+```
+
+As you can see the child router contains a lot of redundancy which we would like to get rid off, so that the route patterns and moduleIds are calculated relative to the parent "root". We will explore how to achieve this and much more in the chapter *Advanced routing*.
+
 
 
