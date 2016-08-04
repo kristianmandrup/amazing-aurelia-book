@@ -267,8 +267,24 @@ A parameterized route is one which has one or more parameter placeholder in its 
 We encourage you in most cases to only have two main routes for any entity, one to handle the list case and one for the single item case.
 Then in the view use binding, composition etc. to handle the display of the entity or a form to create or update it.
 
+The `contact-list` view, from [Contact Manager](http://aurelia.io/hub.html#/doc/article/aurelia/framework/latest/contact-manager-tutorial/6) example.
 
+```html
+<template>
+  <div class="contact-list">
+    <ul class="list-group">
+      <li repeat.for="contact of contacts" class="list-group-item ${contact.id === $parent.selectedId ? 'active' : ''}">
+        <a route-href="route: contacts; params.bind: {id:contact.id}" click.delegate="$parent.select(contact)">
+          <h4 class="list-group-item-heading">${contact.firstName} ${contact.lastName}</h4>
+          <p class="list-group-item-text">${contact.email}</p>
+        </a>
+      </li>
+    </ul>
+  </div>
+</template>
+```
 
+Notice that we use the form `route: contact; params.bind: {id:contact.id}` for the `route-href` attribute. the `params.bind` tells the router which parameters to bind to the route.
 
 
 
