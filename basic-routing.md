@@ -254,6 +254,18 @@ We can use this to generate a full navigation menu, here using bootstrap.
 
 ## Parameterized routing
 
+A parameterized route is one which has one or more parameter placeholder in its routing pattern in the form `:<parameter name>`, such as `route: 'contacts/:id'` in this routing config example.
+
+```ts
+    config.map([
+      { route: ['', 'home'],          moduleId: 'home',     name: 'home',    nav: true,   title: 'Home' },
+      { route: 'contacts',  moduleId: 'contacts', name:'contacts', nav: true,   title: 'Contacts' },
+      { route: 'contacts/:id',  moduleId: 'contact', name:'contact', nav: true,   title: 'Contact' }
+    ]);
+```
+
+We encourage you in most cases to only have two main routes for any entity, one to handle the list case and one for the single item case.
+Then in the view use binding, composition etc. to handle the display of the entity or a form to create or update it.
 
 
 
