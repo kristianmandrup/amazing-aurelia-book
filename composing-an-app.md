@@ -43,3 +43,5 @@ Now expand on this concept by composing twice with the same element. This will c
 
 Now experiment by creating a new vm\/v called `bye` and compose it as well. You can even try having the world element being composed of bye in a nested composition.
 
+Now cleap up the `world` and `bye` VMs if you haven't already, before we move on.
+

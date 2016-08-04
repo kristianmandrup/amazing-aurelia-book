@@ -36,6 +36,57 @@ For a route to work it must have a:
 
 The `moduleId` must link to another view model in your app, relative to the location of this router. The other view model can add its own router configuration, to create a nested routing hierarchy.
 
+Now let's do some routing. First create a new contacts VM/V pair.
+
+`contacts.ts`
+
+```ts
+export class Contacts {
+}
+```
+
+`contacts.html`
+
+```html
+<template>
+  <h1>My Contacts</h1>
+</template>
+```
+
+Now add a link to the `app.html` page
+
+```html
+<template>
+  <h1>Hello World</h1>
+  <a href="/contacts">go to contacts</a>
+<template>
+```
+
+We should rarely use static routes like this however. Much better to let the Aurelia router take care of creating the routes for us.
+
+## route-href
+
+The `<a>` anchor tag supports a special attribute `route-href` which works with the current router. It can be used to automatically generate and update the HTML `href` attribute of the link and also handles finding and calling the route in question with the href. 
+
+```html
+<template>
+ <h1>Hello World</h1>
+ <a route-href="contacts">go to contacts</a>
+<template>
+```
+
+If you want to pass data to the route you have to use a more advanced variant which we will look at later
+
+You will notice that by default the full screen is swapped with the view of the route being routed to. In most real apps however, you want to have a basic single page layout and then swap out one or more regions of the page when you route to a new page, while keeping the surrounding layout in place.
+
+For this we need, Aurelia provides us with a `<router-view>` element which we will now look into.
+
+## Router views
+
+The special `<router-view>` element acts as a placeholder for view content of routes being routed to. By convention if you only have a sinlge nameless `<router-view>` it will be filled in by the first view of the route.
+
+
+
 
 
 
