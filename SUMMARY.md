@@ -8,4 +8,5 @@
 * [Basic composition](composing-an-app.md)
 * [Basic routing](basic-routing.md)
 * [Advanced routing](advanced-routing.md)
+* [Modal wizard](modal-wizard.md)
 
