@@ -7,4 +7,5 @@
 * [The main actors](the-main-actors.md)
 * [Basic composition](composing-an-app.md)
 * [Basic routing](basic-routing.md)
+* [Advanced routing](advanced-routing.md)
 
