@@ -74,77 +74,81 @@ export class Dynamic {
 
 ### Multi level menu
 
-[Multi level menu example](https://github.com/cmichaelgraham/aurelia-typescript/tree/master/multi-level-menu)
+[@cmichaelgraham](https://github.com/cmichaelgraham) has a nice [Multi level menu example](https://github.com/cmichaelgraham/aurelia-typescript/tree/master/multi-level-menu)
+
+The key is the use of `config.addPipelineStep` to add a step to the routing pipeline.
 
 ```
 import {Router} from 'aurelia-router';
-import MultiLevelMenuPipelineStep from './MultiLevelMenuPipelineStep';
+import { MultiLevelMenuPipelineStep } from './MultiLevelMenuPipelineStep';
 
 @inject(Router)
 export class App {
   constructor(public router: Router) {
     this.router.configure((config) => {
       config.title = "Aurelia Multi level menu";
-      config.addPipelineStep('modelbind', mlmps.MultiLevelMenuPipelineStep);
+      config.addPipelineStep('modelbind', MultiLevelMenuPipelineStep);
 
       config.map([
-          { route: ["", "home"], moduleId: "views/home", nav: true, title: "home", settings: { level: 0, show: true } },
-          { route: ["item-1"], moduleId: "views/item-1", nav: true, title: "item 1", settings: { level: 0, show: true } },
-          { route: ["item-1-1"], moduleId: "views/item-1-1", nav: true, title: "item 1.1", settings: { level: 1, show: false } },
-          { route: ["item-1-2"], moduleId: "views/item-1-2", nav: true, title: "item 1.2", settings: { level: 1, show: false } },
-          { route: ["item-2"], moduleId: "views/item-2", nav: true, title: "item 2", settings: { level: 0, show: true } },
-          { route: ["item-2-1"], moduleId: "views/item-2-1", nav: true, title: "item 2.1", settings: { level: 1, show: false } },
-          { route: ["item-2-2"], moduleId: "views/item-2-2", nav: true, title: "item 2.2", settings: { level: 1, show: false } }
+          { route: ['', 'home'], moduleId: 'views/home', nav: true, title: 'home', settings: { level: 0, show: true } },
+
+          { route: ['item-1'], moduleId: 'views/item-1', nav: true, title: 'item 1', settings: { level: 0, show: true } },
+          { route: ['item-1-1'], moduleId: "views/item-1-1", nav: true, title: 'item 1.1', settings: { level: 1, show: false } },
+          { route: ['item-1-2'], moduleId: 'views/item-1-2', nav: true, title: 'item 1.2', settings: { level: 1, show: false } },
           // ...
       ]);
-  });
-}
+    });
+  }
 }
 ```
 
 
-The `MultiLevelMenuPipelineStep` class.
+The `MultiLevelMenuPipelineStep` finds and sets the `targetRouteIndex`
 
 ```ts
-import auf = require("aurelia-framework");
-import aur = require("aurelia-router");
-import mlmu = require("./MultiLevelMenuUtil");
+import { NavigationContext } from 'aurelia-framework';
+import { Router } from 'aurelia-router';
+import { MultiLevelMenuUtil } from './MultiLevelMenuUtil';
 
 export class MultiLevelMenuPipelineStep {
-    run(routingContext: aur.NavigationContext, next: { (): void; cancel(): void; }) {
-        var targetRouteIndex = mlmu.MultiLevelMenuUtil.getTargetRouteIndex(routingContext.router, routingContext.plan.default.config.moduleId);
-        mlmu.MultiLevelMenuUtil.setForTarget(routingContext.router, targetRouteIndex);
+    run(routingContext: NavigationContext, next: { (): void; cancel(): void; }) {
+        var targetRouteIndex = MultiLevelMenuUtil.getTargetRouteIndex(routingContext.router, routingContext.plan.default.config.moduleId);
+        MultiLevelMenuUtil.setForTarget(routingContext.router, targetRouteIndex);
         return next();
     }
 }
 ```
 
-Navigate up custom element
+`navigate-up` custom element
 
 `navigate-up.html`
 
 ```html
 <template>
-    <button class="btn btn-info" click.delegate="navigateUp()">------^------</button>
+    <button class="btn btn-info" click.delegate="navigateUp()">-^-</button>
 </template>
 ```
+
+A view helper
 
 ```ts
 import aurelia from 'aurelia-framework';
 import { Router } from 'aurelia-router';
-import MultiLevelMenuUtil = from './MultiLevelMenuUtil';
+import { MultiLevelMenuUtil } from './MultiLevelMenuUtil';
 
 export class MultiLevelMenuHelper {
 
     public router: router.Router;
 
-    static metadata = aurelia.Behavior.withProperty("router");
+    static metadata = aurelia.Behavior.withProperty('router');
 
     navigateUp() {
         MultiLevelMenuUtil.goUp(this.router);
     }
 }
 ```
+
+To really explore this example, please see the [MultiLevelMenuUtil](https://github.com/cmichaelgraham/aurelia-typescript/blob/master/multi-level-menu/multi-level-menu/views/MultiLevelMenuUtil.ts)
 
 
 
