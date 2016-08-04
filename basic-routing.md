@@ -78,11 +78,13 @@ We need Aurelia routing mechanics to handle routes for us. The magical `route-hr
 Aurelia comes with a special attribute `route-href` which works with the current router. It can be used to automatically generate and update the HTML `href` attribute of the link. It also handles finding and calling the route in question with the `href`. 
 
 ```html
-<template>
+<template bindable="router">
  <h1>Hello World</h1>
- <a route-href="contacts">go to contacts</a>
+ <a route-href="route: contacts">go to contacts</a>
 <template>
 ```
+
+The `route: contacts` tells the router to go to the route named `contacts`.
 
 If you want to pass data to the route you have to use a more advanced variant with `params` which we will look at later when we go more in depth. For now let's keep it simple!
 
