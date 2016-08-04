@@ -15,7 +15,7 @@ export class App {
   configureRouter(config: RouterConfiguration, router: Router){
     config.title = 'Contacts';
     config.map([
-      { route: '',          moduleId: 'home',     name: 'home',    nav: true,   title: 'Home' },
+      { route: ['', 'home'],          moduleId: 'home',     name: 'home',    nav: true,   title: 'Home' },
       { route: 'contacts',  moduleId: 'contacts', name:'contacts', nav: true,   title: 'Contacts' }
     ]);
 
@@ -24,19 +24,26 @@ export class App {
 }
 ```
 
-The App vm will automatically be injected with a `Router` and `RouterConfiguration` singletons when the application starts.
+The `App` VM will automatically be injected with a `Router` and `RouterConfiguration` singletons when the application starts.
 
-We add a `configureRouter(config: RouterConfiguration, router: Router){` method to our root view model, which is called as the vm is initialized.
+We add a `configureRouter(config: RouterConfiguration, router: Router){` method to our root view model, which is called as the VM is initialized.
+
 We then set the `title` of the route config and set the navigation map via `map`. Each route is an object with various required and optional settings.
+
 For a route to work it must have a:
 
-- `route` the routing pattern
+- `route` the routing pattern(s)
 - `moduleId` the location of the view model module
 - `name` the name (logical identifier) of the route
 
-The `moduleId` must link to another view model in your app, relative to the location of this router. The other view model can add its own router configuration, to create a nested routing hierarchy.
+The route is a pattern which is matched by the routing engine in order to determine which route to activate. A route can have multiple patterns such as the `home` route in the example above, which matches both the root pattern `''` (essentially `/` empty) and `welcome` (ie. `/welcome`.
 
-Now let's do some routing. First create a new contacts VM/V pair.
+The `moduleId` must link to a view model in your app. The moduleId is calculated relative to the app root, typically `/src`. 
+The view model activated can add its own router config to the (parent) router config to create a "nested" routing hierarchy.
+
+However please not that by default, nested routes are still essentially "flat". To make a truly nested router where routes extend a root base, we must currently do some heavy lifting which we will explore later on.
+
+Now let's do some routing. First create a new `contacts` VM/V pair.
 
 `contacts.ts`
 
@@ -53,7 +60,7 @@ export class Contacts {
 </template>
 ```
 
-Let's first try to add a link to the `app.html` page
+Let's now try to add a link to the `app.html` page
 
 ```html
 <template>
@@ -62,7 +69,7 @@ Let's first try to add a link to the `app.html` page
 <template>
 ```
 
-Obviously this won't work since the browser only knows to use the href to retrieve a `/contacts.html` file and render it as a new page.
+Obviously this won't work! The browser only knows to use the href to retrieve a `/contacts.html` file and render it as a new page.
 
 We need Aurelia routing mechanics to handle routes for us. The magical `route-href` attribute to the rescue!
 
