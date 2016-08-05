@@ -8,10 +8,15 @@
 * [Basic composition](composing-an-app.md)
 * [Basic routing](basic-routing.md)
 * [Advanced routing](advanced-routing.md)
-* [Modal wizard](modal-wizard.md)
+* [Advanced composition](advanced-composition.md)
 * [Sharing and Passing State](sharing-and-passing-state.md)
 * [Scalable app structure](scalable-app-structure.md)
+* Multiple apps
 * [App Configuration](app-configuration.md)
 * [Forms and Validation](forms-and-validation.md)
+* [Modal wizard](modal-wizard.md)
 * [Managing views](managing-views.md)
+* [Advanced views](tabs.md)
+* Adding maps
+* [Authentication](advanced-composition.md)
 
