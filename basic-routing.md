@@ -2,6 +2,8 @@
 
 Composition has its uses but also its limitations. For most real apps we want to use routing as a way to navigate our application through multiple pages and views.
 
+## Router configuration
+
 Change the `app.ts` to the following:
 
 ```ts
@@ -16,7 +18,7 @@ export class App {
     config.title = 'Contacts';
     config.map([
       { route: ['', 'home'],          moduleId: 'home',     name: 'home',    nav: true,   title: 'Home' },
-      { route: 'contacts',  moduleId: 'contacts', name:'contacts', nav: true,   title: 'Contacts' }
+      { route: '/contacts',  moduleId: './contacts', name:'contacts', nav: true,   title: 'Contacts' }
     ]);
 
     this.router = router;
@@ -26,9 +28,26 @@ export class App {
 
 The `App` VM will automatically be injected with a `Router` and `RouterConfiguration` singletons when the application starts.
 
-We add a `configureRouter(config: RouterConfiguration, router: Router){` method to our root view model, which is called as the VM is initialized.
+### configureRouter
 
-We then set the `title` of the route config and set the navigation map via `map`. Each route is an object with various required and optional settings.
+We add a `configureRouter(config: RouterConfiguration, router: Router){` callback function to our root VM. The callback is called as the VM is initialized. For the root VM, the `router` and `config` are automatically connected. Any VM implementing this callback will have the router made accessible on the root view.
+
+### Routes
+
+We set the `title` of the route config and set the navigation map via `map`. Each route is an object with various required and optional settings.
+Let's now examine a route configuation in detail/
+
+Route configuration example:
+
+```ts
+{
+  route:    '/contacts',
+  moduleId: './contacts',
+  name:     'contacts',
+  nav: true,
+  title: 'Contacts'
+}
+```
 
 For a route to work it must have a:
 
@@ -36,12 +55,18 @@ For a route to work it must have a:
 - `moduleId` the location of the view model module
 - `name` the name (logical identifier) of the route
 
-The route is a pattern which is matched by the routing engine in order to determine which route to activate. A route can have multiple patterns such as the `home` route in the example above, which matches both the root pattern `''` (essentially `/` empty) and `welcome` (ie. `/welcome`.
+We recommend sticking to some convention to easily distinguish between each of these config options.
 
-The `moduleId` must link to a view model in your app. The moduleId is calculated relative to the app root, typically `/src`. 
+- `moduleId` is a file location, so preface with `./` to make it clear.
+- `route` is a [Fragment identifier](https://en.wikipedia.org/wiki/Fragment_identifier) similar to a path, so preface with "/".
+
+The `route` is a pattern which is matched by the routing engine in order to determine which route to activate. Like most other routing engines, a route can contain wild cards and parameters.
+
+A route can march on multiple patterns such as the `home` route in the example above, which matches both on the root pattern `''` (essentially `/`, empty) and `welcome` (ie. `/welcome`).
+
+The `moduleId` must link to a view model in your app. The moduleId is a file path relative to the app root, such as `/src`. For a child router, the moduleId is relative to the location of the parent router (more on this later).
+
 The view model activated can add its own router config to the (parent) router config to create a "nested" routing hierarchy.
-
-However please not that by default, nested routes are evaluate relative to the parent router. To make a truly nested router where routes extend a root base, we must currently do some "heavy lifting", which we will explore later on...
 
 Now let's do some routing. First create a new `contacts` VM/V pair.
 
@@ -75,7 +100,7 @@ We need Aurelia routing mechanics to handle routes for us. The magical `route-hr
 
 ## route-href attribute
 
-Aurelia comes with a special attribute `route-href` which works with the current router. It can be used to automatically generate and update the HTML `href` attribute of the link. It also handles finding and calling the route in question with the `href`. 
+Aurelia comes with a special attribute `route-href` which works with the current router. It can be used to automatically generate and update the HTML `href` attribute of the link. It also handles finding and calling the route in question with the `href`.
 
 ```html
 <template bindable="router">
@@ -97,6 +122,32 @@ For this we need, Aurelia provides us with a `<router-view>` element which we wi
 The special `<router-view>` element acts as a placeholder for view content of routes being routed to. By convention if you only have a single nameless `<router-view>` it will be filled in by the first view of the route being routed to.
 
 If your route routes to multiple named views, you can have multiple named `<router-view>` elements on your layout, designating a destination for each router view.
+
+## Nested router layout
+
+As our application scales, it becomes imperative to start organising the files in a logical hierarchy, each entity in its own place.
+The `contacts` entity should have its own folder `contacts` where everything contact related resides. Let's create a folder `src/contacts` and move the `contacts` VM/V files there.
+
+If you reload the app, it will complain that it can't find VM for the `contact` route.
+
+```
+vendor-bundle.js:3688 GET http://localhost:9000/src/contacts.js
+Error: Script error for "contacts" ...
+```
+
+To fix this, change the `moduleId` of the `contacts` route config to point to the new VM location, ie. `moduleId: './contacts/contacts'`.
+
+```ts
+{
+  route:    '/contacts',
+  moduleId: './contacts/contacts',
+  name:     'contacts',
+  nav: true,
+  title: 'Contacts'
+}
+```
+
+Now the `contacts` route should work again :)
 
 ### Multiple router views
 
@@ -261,27 +312,27 @@ A parameterized route is one which has one or more parameter placeholder in its 
 ```ts
     config.map([
       { route: ['', 'home'],          moduleId: 'home',     name: 'home',    nav: true,   title: 'Home' },
-      { route: 'contacts',  moduleId: 'contacts', name:'contacts', nav: true,   title: 'Contacts' },
-      { route: 'contacts/:id',  moduleId: 'contact', name:'contact', nav: true,   title: 'Contact' }
+      { route: '/contacts',  moduleId: './contacts', name:'contacts', nav: true,   title: 'Contacts' },
+      { route: '/contacts/:id',  moduleId: './contact', name:'contact', nav: true,   title: 'Contact' }
     ]);
 ```
 
 If you run this, an error message will appear, saying:
 
-```bash
+```
 Error: Invalid route config for "/contact/:id" : dynamic routes must specify an "href:" to be included in the navigation model.
 ```
 
 You need to supply a `href` for the navigation model used for displaying hrefs. So to fix it, we can add it as shown here:
 
 ```js
- { 
-   route:    'contacts/:id', 
-   moduleId: 'contact', 
-   name:     'contact', 
+ {
+   route:    '/contacts/:id',
+   moduleId: './contact',
+   name:     'contact',
    href:     'contact',
    nav: true,
-   title:    'Contact' 
+   title:    'Contact'
 }
 ```
 
@@ -333,7 +384,10 @@ In your parent router config, such as in `app.ts` you simply link to a view mode
 
 `{ route: 'contacts',  moduleId: './contacts/index', nav: true, title:'Contacts' }`
 
-Then for the child route you inject the router and ...
+Please rename your `contacts/contacts` component to `contacts/index`.
+Naming a child router `index`  will be our new convention.
+
+Then for the child route you inject the router and
 
 ```ts
 import {Router} from 'aurelia-router';
@@ -354,26 +408,66 @@ export class Contacts {
 }
 ```
 
-As you can see the child router contains a lot of redundancy which we would like to get rid off, so that the route patterns and moduleIds are calculated relative to the parent "root". We will explore how to achieve this and much more in the chapter *Advanced routing*.
+As you can see the child router contains some "redundancy" which we would ideally like to get rid off, such that the `route` patterns and `moduleId`s are instead calculated relative to the parent "mounting point". 
+
+We will explore how to achieve this and much more in the chapter *Advanced routing*.
+
+Now add dummy components for `./contacts/details` and `./contacts/charts`
+
+```
+/src
+  /contacts
+    charts.ts
+    charts.html
+    details.ts
+    details.html
+    index.ts - child router entry point
+    index.html - child router view with internal (sub level) navigation
+
+  app.ts - root router
+  app.html - root router view with top level navigation
+```
+
+Now add folder for  `/articles` and `/stocks` as well and move your stocks and articles components to achieve the following app layout.
+
+```
+/src
+  /articles
+    ...
+    index.html
+    index.ts
+
+  /contacts
+    index.html
+    index.ts
+
+  /resources
+
+  /stocks
+    index.html
+    index.ts
+
+app.ts
+app.html
+```
+
+Adjust the top level route config to reflect this new application layout until all routed work like before.
 
 ### Using the Child router
 
 To use the child router, simply create a view for it.
 Let's try to add the navigation menu for the Child router navigation model.
+This time we use a bootstrap [nav pills](http://getbootstrap.com/components/#nav-pills) menu for the child router view navigation.
 
 ```html
 <template>
-    <nav class="navbar navbar-default navbar-static-top">
-      <div class="container">
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li repeat.for="row of router.navigation" class="${row.isActive ? 'active' : ''}">
-              <a href.bind="row.href">${row.title}</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+  <div id="exTab1" class="container">
+    <ul class="nav nav-pills">
+      <li repeat.for="row of router.navigation" class="${row.isActive ? 'active' : ''}">
+        <a href.bind="row.href">${row.title}</a>
+      </li>
+    </ul>
+  </div>
   <div class="container">
     <div class="row">
       <router-view class="col-md-8"></router-view>
@@ -382,7 +476,11 @@ Let's try to add the navigation menu for the Child router navigation model.
 </template>
 ```
 
-We can also see that it has it's own `<router-view>`. Using a child router can be useful for any view that is itself navigatable, such as when you use a tab menu, accordion or similar, f.ex in a Sidebar or a Form wizard.
+Notice that just like for the the `app.ts` root router, the child router has a default  `<router-view>` element which it manages to display the view for each navigation. So now you can use the top level menu for the top level router navigation, and then from within the child router, using a sub-menu you can route the nested view.
+
+Using a child router can be useful for any view that is itself navigatable, such as when you use a tab menu, accordion or similar. You can f.ex use this approach effectivaly for a Sidebar or a Form wizard.
+
+
 
 
 
