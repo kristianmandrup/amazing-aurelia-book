@@ -275,6 +275,7 @@ Error: Invalid route config for "/contact/:id" : dynamic routes must specify an 
 You need to supply a `href` for the navigation model used for displaying hrefs.
 
 We encourage you in most cases to only have two main routes for any entity, one to handle the list case and one for the single item case.
+
 Then in the view use binding, composition etc. to handle the display of the entity or a form to create or update it.
 
 The `contact-list` view, from [Contact Manager](http://aurelia.io/hub.html#/doc/article/aurelia/framework/latest/contact-manager-tutorial/6) example.
