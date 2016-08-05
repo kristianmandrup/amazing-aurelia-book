@@ -358,6 +358,6 @@ As you can see the child router contains a lot of redundancy which we would like
 
 ### Using the Child router
 
-To use the child router, simply create a view for it.
+To use the child router, simply create a view for it. 
 
 
