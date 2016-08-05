@@ -252,6 +252,8 @@ We can use this to generate a full navigation menu, here using bootstrap.
 </template>
 ```
 
+Notice the `href.bind="row.href"` on the anchor inside the `repeat.for`. Here we directly bind the normal `<a>` anchor `href` DOM attribute with the `row.href` from the navigation map of the router.
+
 ## Parameterized routing
 
 
