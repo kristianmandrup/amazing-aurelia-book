@@ -272,7 +272,24 @@ If you run this, an error message will appear, saying:
 Error: Invalid route config for "/contact/:id" : dynamic routes must specify an "href:" to be included in the navigation model.
 ```
 
-You need to supply a `href` for the navigation model used for displaying hrefs.
+You need to supply a `href` for the navigation model used for displaying hrefs. So to fix it, we can add it as shown here:
+
+```js
+ { 
+   route:    'contacts/:id', 
+   moduleId: 'contact', 
+   name:     'contact', 
+   href:     'contact',
+   nav: true,
+   title:    'Contact' 
+}
+```
+
+Now it should work! 
+
+Note: It feels a bit redundant to specify the name `contact` for both `name`, `href` and `moduleId`. We will later explore how we can encode such patterns in the router or route configuation setup using different stategies.
+
+## Entity routing best practices
 
 We encourage you in most cases to only have two main routes for any entity, one to handle the list case and one for the single item case.
 
