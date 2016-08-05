@@ -358,6 +358,32 @@ As you can see the child router contains a lot of redundancy which we would like
 
 ### Using the Child router
 
-To use the child router, simply create a view for it. 
+To use the child router, simply create a view for it.
+Let's try to add the navigation menu for the Child router navigation model.
+
+```html
+<template>
+    <nav class="navbar navbar-default navbar-static-top">
+      <div class="container">
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li repeat.for="row of router.navigation" class="${row.isActive ? 'active' : ''}">
+              <a href.bind="row.href">${row.title}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  <div class="container">
+    <div class="row">
+      <router-view class="col-md-8"></router-view>
+    </div>
+  </div>
+</template>
+```
+
+We can also see that it has it's own `<router-view>`. Using a child router can be useful for any view that is itself navigatable, such as when you use a tab menu, accordion or similar, f.ex in a Sidebar or a Form wizard.
+
+
 
 
