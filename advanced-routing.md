@@ -149,9 +149,156 @@ This will transform `account` to `pages/account/index`. Without the `page` optio
 
 ## Improving the Routing engine
 
-The *Route config decoration* section above sketched out some options for encoding some conventions on the router and having the configuration configured automatically to adhere to these conventions.
+The *Route config decoration* section above sketched out some options for encoding some conventions on the router and having the configuration configured automatically to adhere to these conventions. However it seems a bit too cumbersome to do it via decoration on the route config level.
+Would be better to simply instruct the routing engine or the router to use a different convention on all routes. We will explore how to achieve this next, how you can cutomize and encode your own routing strategies and conventions on the router level.
+
+The routing engine can be found in the [router](https://github.com/aurelia/router) and [template-routing](https://github.com/aurelia/templating-router) modules.
+
+To patch the routing engine for your own needs, you need to deep dive into the internals of the engine to understand what goes on. Please clone the above mentioned repos locally, then `npm link` each one.
+
+Now create a new project `app-custom-router` via the CLI.
+
+```
+$ npm link aurelia-router
+$ npm link aurelia-templating-router
+```
+
+This will make symbolic links from the modules in `node_modules` to your locally linked ones, which again link to your cloned repos. In short, your project now uses your local cloned repos for `aurelia-router` and `aurelia-templating-router` which you can debug and play around with.
+
+## Changing default routing strategy
+
+The `TemplatingRouteLoader` loads a route via `loadRoute`.
+
+```js
+import {inject} from 'aurelia-dependency-injection';
+import {CompositionEngine} from 'aurelia-templating';
+import {RouteLoader, Router} from 'aurelia-router';
+
+@inject(CompositionEngine)
+export class TemplatingRouteLoader extends RouteLoader {
+  constructor(compositionEngine) {
+    super();
+    this.compositionEngine = compositionEngine;
+  }
+  ...
+  loadRoute(router, config) {
+    ...
+  }
+}
+```
+
+As you can see `TemplatingRouteLoader` extends the `RouteLoader` which has a simple interface:
+
+```js
+export class RouteLoader {
+  loadRoute(router: any, config: any, navigationInstruction: any) {
+    throw Error('Route loaders must implement "loadRoute(router, config, navigationInstruction)".');
+  }
+}
+```
+
+You could potentially write your own `MyTemplatingRouteLoader` and have Aurelia use that instead.
+
+The `aurelia-templating-router` is a standard plugin as you can see in `aurelia-templating-router.js`
+
+```ts
+function configure(config) {
+  config
+    .singleton(RouteLoader, TemplatingRouteLoader)
+    .singleton(Router, AppRouter)
+    .globalResources('./router-view', './route-href');
+
+  config.container.registerAlias(Router, AppRouter);
+}
+
+export {
+  TemplatingRouteLoader,
+  RouterView,
+  RouteHref,
+  configure
+};
+```
+
+You could potentially write your own the same way...
+
+### TemplatingRouteLoader
+
+The default stragegy for load to find a VM module is:
+
+```
+import {relativeToFile} from 'aurelia-path';
+
+...
+  loadRoute(router, config) {
+    let childContainer = router.container.createChild();
+    let instruction = {
+
+      viewModel: relativeToFile(config.moduleId, Origin.get(router.container.viewModel.constructor).moduleId);
+    ...
+```
 
 
+Which I believe means that the relative file path is calculated from the route `moduleId` and the router parent (container) `moduleId`.
+
+You could change this to:
+
+```js
+relativeToFile(config.moduleId);
+```
+
+To have it only be relative to the route `moduleId`. Or perhaps to:
+
+```js
+relativeToFile('index', config.moduleId);
+```
+
+To have `./contacts` be resolved to `./contacts/index`, since the 2nd argument is the parent identifier.
+
+However instead of changing strategy in the templating-router, why not let each individual `router` have the option to implement its own strategy.
+
+Let's change our `TemplatingRouteLoader` to achieve this. We change the `instruction.viewModel` to `viewModel: this.viewModelLocation(router, config)`
+
+`templating-router/route-loader`
+
+```js
+  loadRoute(router, config) {
+    let childContainer = router.container.createChild();
+    let instruction = {
+      viewModel: this.viewModelLocation(router, config),  // <--- CHANGED
+      childContainer: childContainer,
+      view: config.view || config.viewStrategy,
+      router: router
+    };
+```
+
+Then we introduce a new instance function `viewModelLocation` where we check if the router has a function of the same name that we can delegate to. Otherwise we use the default strategy.
+
+```js
+  viewModelLocation(router, config) {
+    if (router.viewModelLocation) {
+      return router.viewModelLocation(config);
+    } else {
+      return relativeToFile(config.moduleId, Origin.get(router.container.viewModel.constructor).moduleId);
+    }
+  }
+```
+
+On the `Router`, we can then introduce the `viewModelLocation` function that we can delegate to, which by we set to uses the standard resolution strategy as well. Note that we must now import the function `relativeToFile` from `aurelia-path`.
+
+`router/router.js`
+
+```js
+import {relativeToFile} from 'aurelia-path';
+
+export class Router {
+  ...
+
+  viewModelLocation(config) {
+      return relativeToFile(config.moduleId, Origin.get(this.container.viewModel.constructor).moduleId);
+  }
+```
+
+Now for any router, we can override its `viewModelLocation` to use a different strategy for any of its routes in the route configuration. Awesome!
 
 ## Advanced routing recipes
 
