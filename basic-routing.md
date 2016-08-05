@@ -266,6 +266,14 @@ A parameterized route is one which has one or more parameter placeholder in its 
     ]);
 ```
 
+If you run this, an error message will appear, saying:
+
+```bash
+Error: Invalid route config for "/contact/:id" : dynamic routes must specify an "href:" to be included in the navigation model.
+```
+
+You need to supply a `href` for the navigation model used for displaying hrefs.
+
 We encourage you in most cases to only have two main routes for any entity, one to handle the list case and one for the single item case.
 Then in the view use binding, composition etc. to handle the display of the entity or a form to create or update it.
 
