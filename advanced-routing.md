@@ -398,16 +398,70 @@ export class MyRouter extend Router {
 
 Now for any viewModel with router we can instead inject the `MyRouter` singleton which provides a `viewModelLocation` we can use to define different VM location strategy, while still have access to the original Router with the default strategy only. Pure Awesomeness!
 
+### Router API
+
+- `isRoot(): boolean` is it the root router?
+- `reset()` - resets the router's internal state
+- `hasRoute(name: string): boolean` - find route by name (incl parent routers)
+- `hasOwnRoute(name: string): boolean` - find route by name (only this router)
+- `updateTitle()` - update document title using current navigation instruction
+- `navigateBack(): void` - Navigates back to the most recent location in history.
+
+`refreshNavigation(): void` - Updates the navigation routes with hrefs relative to the current location
+
+`configure(callbackOrConfig: RouterConfiguration|((config: RouterConfiguration) => RouterConfiguration)): Promise<void>` - configure the router
+
+`navigate(fragment: string, options?: any): boolean` - navigate to location
+
+`navigateToRoute(route: string, params?: any, options?: any): boolean` - navigate to location corresponding to the route and params
+
+`createChild(container?: Container): Router` - Creates a child router of the current router.
+
+`addRoute(config: RouteConfig, navModel?: NavModel): void` - Registers a new route with the router.
+
+`handleUnknownRoutes(config?: string|Function|RouteConfig): void` - use a `moduleId`, a function that selects the `moduleId` or an alternative `RouteConfig` to use to find the module of the VM for an unknown route.
+
+`generate(name: string, params?: any, options?: any = {}): string` - Generates a URL fragment matching the specified route pattern. Uses the `aurelia-route-recognizer` plugin ;)
+
+`createNavModel(config: RouteConfig): NavModel` - Creates a NavModel for the specified route config.
+
+### AppRouter API
+
+The AppRouter is the top level router for the app.
+
+- `loadUrl(url): Promise<NavigationInstruction>` - loads the url
+- `activate(options: Object)` - activate router
+- `deactivate()` - deactivate router
+
+### Router Configuration API
+
+`addPipelineStep(name: string, step: Function|PipelineStep): RouterConfiguration` - Adds a step to be run during the Router's navigation pipeline.
+
+`addAuthorizeStep(step: Function|PipelineStep): RouterConfiguration`
+
+`addPreActivateStep(step: Function|PipelineStep): RouterConfiguration`
+
+`addPreRenderStep(step: Function|PipelineStep): RouterConfiguration`
+
+`addPostRenderStep(step: Function|PipelineStep): RouterConfiguration`
+
+`map(route: RouteConfig|RouteConfig[]): RouterConfiguration` - Maps one or more routes to be registered with the router
+
+`mapRoute(config: RouteConfig): RouterConfiguration` - Maps a single route to be registered with the router.
+
+`mapUnknownRoutes(config)` - Registers an unknown route handler to be run when the URL fragment doesn't match any registered routes.
+
+`config` - A string containing a moduleId to load, a RouteConfig, or a function that takes the NavigationInstruction and selects a moduleId to load.
+
+`exportToRouter(router: Router): void` - Applies the current configuration to the specified Router.
+
 ## More advanced routing recipes
 
 We will now explore a few different common routing recipes.
 
 - Dynamic routes
-- Multi level menu
 
 ### Dynamic routes
-
-See [example](https://github.com/cmichaelgraham/aurelia-typescript/tree/master/code-sandbox#adding-a-route-dynamically)
 
 `dynamic.html`
 
@@ -421,14 +475,13 @@ See [example](https://github.com/cmichaelgraham/aurelia-typescript/tree/master/c
 `dynamic.ts`
 
 ```ts
-
 import {inject} from "aurelia-framework"
 import {Router, RouterConfiguration, RouteConfig} from "aurelia-router";
 
 @inject(RouterConfiguration, Router)
 export class Dynamic {
     public addedDynoViewRoute: boolean = false;
-    theRouter:Router;
+    router:Router;
     config: RouterConfiguration;
 
     constructor(config: RouterConfiguration, router: Router) {
@@ -452,80 +505,3 @@ export class Dynamic {
 }
 ```
 
-### Multi level menu
-
-[@cmichaelgraham](https://github.com/cmichaelgraham) has a nice [Multi level menu example](https://github.com/cmichaelgraham/aurelia-typescript/tree/master/multi-level-menu)
-
-The key is the use of `config.addPipelineStep` to add a step to the routing pipeline.
-
-```
-import {Router} from 'aurelia-router';
-import { MultiLevelMenuPipelineStep } from './MultiLevelMenuPipelineStep';
-
-@inject(Router)
-export class App {
-  constructor(public router: Router) {
-    this.router.configure((config) => {
-      config.title = "Aurelia Multi level menu";
-      config.addPipelineStep('modelbind', MultiLevelMenuPipelineStep);
-
-      config.map([
-          { route: ['', 'home'], moduleId: 'views/home', nav: true, title: 'home', settings: { level: 0, show: true } },
-
-          { route: ['item-1'], moduleId: 'views/item-1', nav: true, title: 'item 1', settings: { level: 0, show: true } },
-          { route: ['item-1-1'], moduleId: "views/item-1-1", nav: true, title: 'item 1.1', settings: { level: 1, show: false } },
-          { route: ['item-1-2'], moduleId: 'views/item-1-2', nav: true, title: 'item 1.2', settings: { level: 1, show: false } },
-          // ...
-      ]);
-    });
-  }
-}
-```
-
-
-The `MultiLevelMenuPipelineStep` finds and sets the `targetRouteIndex`
-
-```ts
-import { NavigationContext } from 'aurelia-framework';
-import { Router } from 'aurelia-router';
-import { MultiLevelMenuUtil } from './MultiLevelMenuUtil';
-
-export class MultiLevelMenuPipelineStep {
-    run(routingContext: NavigationContext, next: { (): void; cancel(): void; }) {
-        var targetRouteIndex = MultiLevelMenuUtil.getTargetRouteIndex(routingContext.router, routingContext.plan.default.config.moduleId);
-        MultiLevelMenuUtil.setForTarget(routingContext.router, targetRouteIndex);
-        return next();
-    }
-}
-```
-
-`navigate-up` custom element
-
-`navigate-up.html`
-
-```html
-<template>
-    <button class="btn btn-info" click.delegate="navigateUp()">-^-</button>
-</template>
-```
-
-A view helper
-
-```ts
-import aurelia from 'aurelia-framework';
-import { Router } from 'aurelia-router';
-import { MultiLevelMenuUtil } from './MultiLevelMenuUtil';
-
-export class MultiLevelMenuHelper {
-
-    public router: router.Router;
-
-    static metadata = aurelia.Behavior.withProperty('router');
-
-    navigateUp() {
-        MultiLevelMenuUtil.goUp(this.router);
-    }
-}
-```
-
-To really explore this example, please see the [MultiLevelMenuUtil](https://github.com/cmichaelgraham/aurelia-typescript/blob/master/multi-level-menu/multi-level-menu/views/MultiLevelMenuUtil.ts)
