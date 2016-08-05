@@ -16,7 +16,7 @@
 * [State management](state-management.md)
 * [Sharing and Passing State](sharing-and-passing-state.md)
 * [Advanced views](tabs.md)
-* Adding maps
+* [Adding maps](adding-maps.md)
 * [Authentication](advanced-composition.md)
 * [Scalable app structure](scalable-app-structure.md)
 * Multiple apps
