@@ -221,13 +221,43 @@ export {
 };
 ```
 
-## Using a custom TemplatingRouteLoader plugin
+## Writing a TemplatingRouteLoader plugin
 
-You could write your own plugin the same way, simply swapping `TemplatingRouteLoader` with f.ex `MyTemplatingRouteLoader`.
+You could write your own plugin the same way.
+
+Create a new folder `my-templating-router` and run `npm init` from inside.
+Then install `aurelia-templating-router` as a dependency as you want to build on top of and customize it.
+
+`npm install aurelia-templating-router --save`
+
+Create a file `my-route-loader.ts` with a class `MyRouteLoader`. 
+
+```ts
+import { TemplatingRouteLoader } from 'aurelia-templating-router';
+
+class MyRouteLoader extends TemplatingRouteLoader {
+  // custom override functionality
+}
+```
+
+In your `index.ts` file add the following code. Notice how `.singleton(RouteLoader, MyTemplatingRouteLoader).` registers `MyTemplatingRouteLoader` as the `RouteLoader` for the framework, essentially a singleton registry. Excellent!
+
+```ts
+import {Router, AppRouter, RouteLoader} from 'aurelia-router';
+import {MyRouteLoader} from './my-route-loader';
+
+function configure(config) {
+  config
+    .singleton(RouteLoader, MyRouteLoader)
+}
+
+export {
+  MyRouteLoader
+};
+```
 
 Then you just need to make Aurelia use your custom templating router plugin ;)
-
-So instead of using the `standardConfiguration`
+Instead of using the `standardConfiguration`
 
 ```js
 export function configure(aurelia) {
@@ -235,7 +265,7 @@ export function configure(aurelia) {
    .standardConfiguration()
 ```
 
-We must tell Aurelia boostrapper to use our own.
+We tell Aurelia boostrapper exactly what to use...
 
 ```
 export function configure(aurelia) {
@@ -259,29 +289,39 @@ The key here is the `router()` which if we look into [framework-configuration](h
   }
 ```
 
-Instead, remove the `.router()` and add `aurelia.use.plugin('my-templating-router')`
+We want to still keep the registrations for `Router` and the global resources for `router-view` and `route-href`.
+
+```ts
+    .singleton(Router, AppRouter)
+    .globalResources('./router-view', './route-href');
+
+  config.container.registerAlias(Router, AppRouter);
+```
+
+However we want to override the registration entry for `RouteLoader`.
+
+To achieve this override we can add `aurelia.use.plugin('my-templating-router')` at the end of the configuration. This will  effectively override the registry for `RouteLoader` with `MyTemplatingRouteLoader`. Perfect :)
 
 ```js
 export function configure(aurelia) {
    aurelia.use
    .defaultBindingLanguage()
    // ...
+   .router()
    .eventAggregator();
 
-   // Use my own templating router!!
+   // Use my own templating route loader!!
    aurelia.use.plugin('my-templating-router');
 
    aurelia.start().then(() => aurelia.setRoot());
 }
 ```
 
-Now you should be good to go ;)
+Now we can customize our `MyRouteLoader` to suit our needs :)
 
-Note: The outlined approach doesn't seem perfect but is better than what we find in most other (more monolithic) frameworks. What if we had a registry of frmaework classes and then could just register a new class there, overwriting the default registry config. The bootstrapper could then look up each class it needs in that registry as it boots the framework and application!
+### RouteLoader
 
-### TemplatingRouteLoader
-
-The default stragegy for `loadRoute` to find a VM module is defined for `instruction.viewModel`.
+If we look at `TemplatingRouteLoader`, we see that the default stragegy for `loadRoute` to find a VM module is defined for `instruction.viewModel`.
 
 ```js
 import {relativeToFile} from 'aurelia-path';
@@ -297,23 +337,15 @@ export class TemplatingRouteLoader extends RouteLoader {
     // ...
 ```
 
-The relative file path of the VM module is calculated from the route `moduleId` and the router parent (container) `moduleId` like this:
+The relative file path of the VM module is calculated from the route `moduleId` and the router parent (container) `moduleId`.
+
+`Origin.get(router.container.viewModel.constructor).moduleId` finds the moduleId of the parent router viewModel.
+
+The full path is thus calculated like this:
 
 `/<parent module id>/<route module id>`
 
-You could change this to:
-
-```js
-relativeToFile(config.moduleId);
-```
-
-To have it be the route `moduleId` only, or alternatively:
-
-```js
-relativeToFile('index', config.moduleId);
-```
-
-To have `./contacts` be resolved to `./contacts/index`.
+You could f.ex change this to `relativeToFile(config.moduleId)` to have it be the route `moduleId` only, or alternatively `relativeToFile('index', config.moduleId);` to have `./contacts` be resolved to `./contacts/index`.
 
 However instead of changing strategy in the templating router, why not let each individual `router` have the option to implement its own strategy.
 
@@ -344,16 +376,19 @@ Now lets introduce the function `viewModelLocation`, where we first try to use t
   }
 ```
 
-On the `Router`, we can then introduce the `viewModelLocation` delegate function which we set to use the standard resolution strategy by default as well. 
+## Customizing the router
+
+On the `Router`, we can then introduce the `viewModelLocation` delegate function which we set to use the standard resolution strategy by default as well.
 
 *Important*: We must now import the function `relativeToFile` from `aurelia-path`.
 
 `router/router.js`
 
 ```js
+import {Router} from 'aurelia-router';
 import {relativeToFile} from 'aurelia-path';
 
-export class Router {
+export class MyRouter extend Router {
   ...
 
   viewModelLocation(config) {
@@ -361,9 +396,9 @@ export class Router {
   }
 ```
 
-Now for any router, we can override its `viewModelLocation` to use a different strategy for any of its routes in the route configuration. Awesome!
+Now for any viewModel with router we can instead inject the `MyRouter` singleton which provides a `viewModelLocation` we can use to define different VM location strategy, while still have access to the original Router with the default strategy only. Pure Awesomeness!
 
-## Advanced routing recipes
+## More advanced routing recipes
 
 We will now explore a few different common routing recipes.
 
@@ -494,8 +529,3 @@ export class MultiLevelMenuHelper {
 ```
 
 To really explore this example, please see the [MultiLevelMenuUtil](https://github.com/cmichaelgraham/aurelia-typescript/blob/master/multi-level-menu/multi-level-menu/views/MultiLevelMenuUtil.ts)
-
-
-
-
-
