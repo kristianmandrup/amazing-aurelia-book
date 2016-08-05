@@ -11,6 +11,7 @@
 * [Advanced composition](advanced-composition.md)
 * [App Configuration](app-configuration.md)
 * [Forms and Validation](forms-and-validation.md)
+* [Value converters](custom-value-converters.md)
 * [Modal wizard](modal-wizard.md)
 * [Managing views](managing-views.md)
 * [State management](state-management.md)
