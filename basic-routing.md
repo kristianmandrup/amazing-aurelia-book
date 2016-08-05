@@ -123,6 +123,10 @@ The special `<router-view>` element acts as a placeholder for view content of ro
 
 If your route routes to multiple named views, you can have multiple named `<router-view>` elements on your layout, designating a destination for each router view.
 
+The `<router-view>` component is defining a so-called view port, so it calls the router's `registerViewPort` method. This method then looks at the currently active component by using the `<router-view>` to access that information, and calls its `configureRouter` method.
+
+The `configureRouter` method is slightly outside Aurelia's life cycles, and instead is only called when a new view port is registered. So don't forget your `<router-view>` ;)
+
 ## Nested router layout
 
 As our application scales, it becomes imperative to start organising the files in a logical hierarchy, each entity in its own place.

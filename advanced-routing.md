@@ -169,6 +169,8 @@ This will make symbolic links from the modules in `node_modules` to your locally
 
 The `TemplatingRouteLoader` loads a route via `loadRoute`.
 
+`templating-router/route-loader.js`
+
 ```js
 import {inject} from 'aurelia-dependency-injection';
 import {CompositionEngine} from 'aurelia-templating';
@@ -187,7 +189,7 @@ export class TemplatingRouteLoader extends RouteLoader {
 }
 ```
 
-As you can see `TemplatingRouteLoader` extends the `RouteLoader` which has a simple interface:
+As you can see `TemplatingRouteLoader` extends `RouteLoader` which has a simple interface:
 
 ```js
 export class RouteLoader {
@@ -197,7 +199,7 @@ export class RouteLoader {
 }
 ```
 
-You could potentially write your own `MyTemplatingRouteLoader` and have Aurelia use that instead.
+You could write your own `MyTemplatingRouteLoader` and have Aurelia use that instead.
 
 The `aurelia-templating-router` is a standard plugin as you can see in `aurelia-templating-router.js`
 
@@ -219,26 +221,85 @@ export {
 };
 ```
 
-You could potentially write your own the same way...
+## Using a custom TemplatingRouteLoader plugin
+
+You could write your own plugin the same way, simply swapping `TemplatingRouteLoader` with f.ex `MyTemplatingRouteLoader`.
+
+Then you just need to make Aurelia use your custom templating router plugin ;)
+
+So instead of using the `standardConfiguration`
+
+```js
+export function configure(aurelia) {
+   aurelia.use
+   .standardConfiguration()
+```
+
+We must tell Aurelia boostrapper to use our own.
+
+```
+export function configure(aurelia) {
+   aurelia.use
+   .defaultBindingLanguage()
+   .defaultResources()
+   .developmentLogging()
+   .router()
+   .history()
+   .eventAggregator();
+
+   // ...
+}
+```
+
+The key here is the `router()` which if we look into [framework-configuration](https://github.com/aurelia/framework/blob/master/src/framework-configuration.js) adds the [aurelia-templating-router](https://github.com/aurelia/templating-router) plugin.
+
+```js
+  router(): FrameworkConfiguration {
+    return this._addNormalizedPlugin('aurelia-templating-router');
+  }
+```
+
+Instead, remove the `.router()` and add `aurelia.use.plugin('my-templating-router')`
+
+```js
+export function configure(aurelia) {
+   aurelia.use
+   .defaultBindingLanguage()
+   // ...
+   .eventAggregator();
+
+   // Use my own templating router!!
+   aurelia.use.plugin('my-templating-router');
+
+   aurelia.start().then(() => aurelia.setRoot());
+}
+```
+
+Now you should be good to go ;)
+
+Note: The outlined approach doesn't seem perfect but is better than what we find in most other (more monolithic) frameworks. What if we had a registry of frmaework classes and then could just register a new class there, overwriting the default registry config. The bootstrapper could then look up each class it needs in that registry as it boots the framework and application!
 
 ### TemplatingRouteLoader
 
-The default stragegy for load to find a VM module is:
+The default stragegy for `loadRoute` to find a VM module is defined for `instruction.viewModel`.
 
-```
+```js
 import {relativeToFile} from 'aurelia-path';
 
-...
+export class TemplatingRouteLoader extends RouteLoader {
+  // ...
+
   loadRoute(router, config) {
     let childContainer = router.container.createChild();
     let instruction = {
 
       viewModel: relativeToFile(config.moduleId, Origin.get(router.container.viewModel.constructor).moduleId);
-    ...
+    // ...
 ```
 
+The relative file path of the VM module is calculated from the route `moduleId` and the router parent (container) `moduleId` like this:
 
-Which I believe means that the relative file path is calculated from the route `moduleId` and the router parent (container) `moduleId`.
+`/<parent module id>/<route module id>`
 
 You could change this to:
 
@@ -246,19 +307,19 @@ You could change this to:
 relativeToFile(config.moduleId);
 ```
 
-To have it only be relative to the route `moduleId`. Or perhaps to:
+To have it be the route `moduleId` only, or alternatively:
 
 ```js
 relativeToFile('index', config.moduleId);
 ```
 
-To have `./contacts` be resolved to `./contacts/index`, since the 2nd argument is the parent identifier.
+To have `./contacts` be resolved to `./contacts/index`.
 
-However instead of changing strategy in the templating-router, why not let each individual `router` have the option to implement its own strategy.
+However instead of changing strategy in the templating router, why not let each individual `router` have the option to implement its own strategy.
+
+## Putting the router in charge
 
 Let's change our `TemplatingRouteLoader` to achieve this. We change the `instruction.viewModel` to `viewModel: this.viewModelLocation(router, config)`
-
-`templating-router/route-loader`
 
 ```js
   loadRoute(router, config) {
@@ -271,7 +332,7 @@ Let's change our `TemplatingRouteLoader` to achieve this. We change the `instruc
     };
 ```
 
-Then we introduce a new instance function `viewModelLocation` where we check if the router has a function of the same name that we can delegate to. Otherwise we use the default strategy.
+Now lets introduce the function `viewModelLocation`, where we first try to use the `router` delegate function with a fallback to the default strategy from before.
 
 ```js
   viewModelLocation(router, config) {
@@ -283,7 +344,9 @@ Then we introduce a new instance function `viewModelLocation` where we check if 
   }
 ```
 
-On the `Router`, we can then introduce the `viewModelLocation` function that we can delegate to, which by we set to uses the standard resolution strategy as well. Note that we must now import the function `relativeToFile` from `aurelia-path`.
+On the `Router`, we can then introduce the `viewModelLocation` delegate function which we set to use the standard resolution strategy by default as well. 
+
+*Important*: We must now import the function `relativeToFile` from `aurelia-path`.
 
 `router/router.js`
 
