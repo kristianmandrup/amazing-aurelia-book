@@ -11,4 +11,5 @@
 * [Modal wizard](modal-wizard.md)
 * [Sharing and Passing State](sharing-and-passing-state.md)
 * [Scalable app structure](scalable-app-structure.md)
+* [App Configuration](app-configuration.md)
 
