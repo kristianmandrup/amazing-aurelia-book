@@ -287,7 +287,20 @@ You need to supply a `href` for the navigation model used for displaying hrefs. 
 
 Now it should work! 
 
-Note: It feels a bit redundant to specify the name `contact` for both `name`, `href` and `moduleId`. We will later explore how we can encode such patterns in the router or route configuation setup using different stategies.
+It feels a bit redundant to specify the name `contact` for both `name`, `href` and `moduleId`. We will later explore how we can encode such patterns in the router or route configuation setup using different stategies.
+
+## Using the parameterized route
+
+Now use the parameterized route as follows:
+
+`<a route-href="route: contact; params.bind: {id: 1}">Contact #1</a>`
+
+Here we bind the object `{id: 1}` to params of the route named `contact`.
+
+Personally I cringe a bit on this syntax. I would much have preferred to split params into its own special attribute like this:
+
+`<a route-href="route: contact" route-params.bind="{id: 1}">Contact #1</a>`
+
 
 ## Entity routing best practices
 
