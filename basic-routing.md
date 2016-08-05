@@ -356,5 +356,8 @@ export class Contacts {
 
 As you can see the child router contains a lot of redundancy which we would like to get rid off, so that the route patterns and moduleIds are calculated relative to the parent "root". We will explore how to achieve this and much more in the chapter *Advanced routing*.
 
+### Using the Child router
+
+To use the child router, simply create a view for it.
 
 
