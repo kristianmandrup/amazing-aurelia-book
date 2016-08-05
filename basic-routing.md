@@ -256,9 +256,66 @@ Notice the `href.bind="row.href"` on the anchor inside the `repeat.for`. Here we
 
 ## Parameterized routing
 
+A parameterized route is one which has one or more parameter placeholder in its routing pattern in the form `:<parameter name>`, such as `route: 'contacts/:id'` in this routing config example.
 
+```ts
+    config.map([
+      { route: ['', 'home'],          moduleId: 'home',     name: 'home',    nav: true,   title: 'Home' },
+      { route: 'contacts',  moduleId: 'contacts', name:'contacts', nav: true,   title: 'Contacts' },
+      { route: 'contacts/:id',  moduleId: 'contact', name:'contact', nav: true,   title: 'Contact' }
+    ]);
+```
 
+We encourage you in most cases to only have two main routes for any entity, one to handle the list case and one for the single item case.
+Then in the view use binding, composition etc. to handle the display of the entity or a form to create or update it.
 
+The `contact-list` view, from [Contact Manager](http://aurelia.io/hub.html#/doc/article/aurelia/framework/latest/contact-manager-tutorial/6) example.
+
+```html
+<template>
+  <div class="contact-list">
+    <ul class="list-group">
+      <li repeat.for="contact of contacts" class="list-group-item ${contact.id === $parent.selectedId ? 'active' : ''}">
+        <a route-href="route: contacts; params.bind: {id:contact.id}" click.delegate="$parent.select(contact)">
+          <h4 class="list-group-item-heading">${contact.firstName} ${contact.lastName}</h4>
+          <p class="list-group-item-text">${contact.email}</p>
+        </a>
+      </li>
+    </ul>
+  </div>
+</template>
+```
+
+Notice that we use the form `route: contact; params.bind: {id:contact.id}` for the `route-href` attribute. the `params.bind` tells the router which parameters to bind to the route.
+
+## Child routers
+
+In your parent router config, such as in `app.ts` you simply link to a view model that is itself a router.
+
+`{ route: 'contacts',  moduleId: './contacts/index', nav: true, title:'Contacts' }`
+
+Then for the child route you inject the router and ...
+
+```ts
+import {Router} from 'aurelia-router';
+
+@inject(Router)
+export class Contacts {
+  constructor(router){
+    this.heading = 'Child Router';
+    this.router = router;
+
+    router.configure(config => {
+      config.map([
+        { route: 'contacts/details',  moduleId: './contacts/details',      nav: true, title:'Contact Details' },
+        { route: 'contacts/charts', moduleId: './contacts/charts', nav: true, title: 'Contact Charts' },
+      ]);
+    });
+  }
+}
+```
+
+As you can see the child router contains a lot of redundancy which we would like to get rid off, so that the route patterns and moduleIds are calculated relative to the parent "root". We will explore how to achieve this and much more in the chapter *Advanced routing*.
 
 
 
