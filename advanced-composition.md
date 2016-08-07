@@ -227,7 +227,135 @@ removeWidget(widget) {
 }
 ```
 
-Inter-Component-Communication via Events
+### Inter-Component-Communication via Events
 We’ve mentioned that the toolbox has a “Clear Report” button, but how does that trigger the clearance of all the widgets added to the report page? One possibility would be to include a reference to the report VM inside the toolbox and call the method this would provide. This mechanism would however, introduce a tight coupling between these two elements, as the toolbox wouldn’t be usable without the report page. As the system grows, and more and more parts become dependent on each other, which will ultimately result in an overly-complex situation.
 
 An alternative is to use application-wide events. As shown in the figure below, the toolbox’s button would trigger a custom event, which the report would subscribe to. Upon receiving this event, it would perform the internal task of emptying the widgets list. With this approach both parts become loosely coupled, as the event might be triggered by another implementation or even another component.
+
+To implement this we can use Aurelia’s EventAggregator. If you look at the toolbox.js code snippet above, you can see that the EventAggregator has already been injected into the toolbox VM. We can see it in action in the clearReport method, which simply publishes a new event with the name clearReport.
+
+```ts
+clearReport() {
+  this.ea.publish('clearReport');
+}
+```
+
+Note that we could also pass an additional payload with the data, as well as have events identified via custom types instead of strings.
+The report VM then subscribes to this event inside its constructor and, as requested, clears the widgets array.
+
+```ts
+import {inject} from 'aurelia-framework';
+import {EventAggregator} from 'aurelia-event-aggregator';
+import sortable from 'sortable';
+
+@inject(EventAggregator)
+export class Report {
+
+  constructor(evtAgg) {
+    this.ea = evtAgg;
+    this.ea.subscribe('clearReport', () => {
+      this.widgets = [];
+    });
+  }
+
+// ...
+```
+
+### Use External Code via Plugins
+
+So far we haven’t looked at the actual drag & drop feature, which we’re going to use to drag widgets from the toolbox onto the report sheet. Of course one could create the functionality via native HTML5 Drag and Drop, but why go reinventing the wheel when there are already a bunch of nice libraries such as Sortable out there to do the work for us.
+
+A common pattern when developing applications is thus to rely on external code bases which provide out-of-the-box features. But not only 3rd party code might be shared that way. We can do the same with our own reusable features by leveraging Aurelia’s plugin system. The idea is the same. Instead of rewriting code for each application, we create a custom Aurelia plugin, hosting the desired functionality and exporting it with simple helpers. This is not limited to pure UI components but might be used as well for shared business logic or complex features like authentication/authorization scenarios.
+
+### Leverage Subtle Animations
+
+In that vein, let’s take a look at Aurelia Animator CSS, a simple animation library for Aurelia.
+
+Aurelia’s animation library is built around a simple interface which is part of the templating repository. It acts as a kind of generic interface for actual implementations. This interface is called internally by Aurelia in certain situations where built-in features work with DOM-Elements. For example, the repeater uses this to trigger animations on newly inserted/removed elements in a list.
+
+Following an opt-in approach, in order to make use of animations, it is necessary to install a concrete implementation (such as the CSS-Animator) which does its magic by declaring CSS3 animations inside your stylesheet. In order to install it we can use the following command:
+
+`npm install aurelia-animator-css`
+
+After that, the final step is to register the plugin with the application, which is done during the manual bootstrapping phase in the `main.js` file of our report builder example.
+
+```ts
+export function configure(aurelia) {
+  aurelia.use
+    .standardConfiguration()
+    .developmentLogging()
+    .plugin('aurelia-animator-css');  // <-- REGISTER THE PLUGIN
+
+  aurelia.start().then(a => a.setRoot());
+}
+```
+
+Note: The plugin itself is just another Aurelia project following the convention of having an index.js file exposing a configure function, which receives an instance of Aurelia as a parameter. The configure method does the initialization work for the plugin. For example, it might register components such as custom elements, attributes or value converters, so that they can be used out-of-the-box (as with the compose custom element). Some plugins accept a callback as a second parameter which can be used to configure the plugin after initialization. An example of this is the i18n plugin.
+
+The report builder makes use of subtle animations during the composition phase and to indicate the removal of a widget from the report. The former is done within the toolbox view. We add the class au-stagger to the unordered list to indicate that each item should be animated sequentially. Now each list-item needs the class au-animate, which tells the Animator that we’d like to have this DOM-Element animated.
+
+```html
+<ul class="list-unstyled toolbox au-stagger" ref="toolboxList">
+  <li repeat.for="widget of widgets" 
+      class="au-animate" 
+      title="${widget.type}">
+        <i class="fa ${widget.icon}"/> ${widget.name}
+  </li>
+</ul>
+```
+
+We do the same for the reports view widget-repeater:
+
+`<li repeat.for="widget of widgets" class="au-animate">`
+
+As mentioned, the CSS-Animator will add specific classes to elements during the animation-phase. All we need to do is to declare those in our stylesheet.
+
+```ts
+import sortable from 'sortable';
+...
+
+export class Toolbox {
+  ...
+  attached() {
+    new sortable(this.toolboxList, {
+      sort: false,
+      group: {
+        name: "report",
+        pull: 'clone',
+        put: false
+      }
+    });
+  }
+}
+```
+
+You might wonder where `this.toolboxList` is coming from. Take a look at the `ref` attribute of the toolbox view in the animation section above. This simply creates a mapping for an element between the view and the VM.
+
+The final part is to accept the dropped elements inside the report VM. To do this, we can leverage the `onAdd` handler of Sortable.js. Since the dragged list element itself is not going to be placed inside the report but rather the referenced widget composed by the view, we first have to remove it. After this, we check the type of the widget and in case of a textblock, we initialize a prompt for the text, which will be used as the widget’s model data. Finally, we create a wrapper object including the widget’s id, type and model, which will be used by the report view to compose the widget.
+
+```ts
+attached() {
+  new sortable(this.reportSheet, {
+    group: 'report',
+    onAdd: (evt) => {
+      let type = evt.item.title,
+          model = Math.random(),
+          newPos = evt.newIndex;
+
+      evt.item.parentElement.removeChild(evt.item);
+
+      if(type === 'textblock') {
+        model = prompt('Enter textblock content');
+        if(model === undefined || model === null)
+          return;
+      }
+
+      this.widgets.splice(newPos, 0, {
+        id: Math.random(),
+        type: type,
+        model: model
+      });
+    }
+  });
+}
+```
