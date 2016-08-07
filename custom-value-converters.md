@@ -37,6 +37,8 @@ export class DayNameValueConverter {
 
 The `toView` method to converts the value passed in for display to the view.
 
+### Testing the converter
+
 We can test it like this:
 
 `showdate.ts` VM
@@ -56,6 +58,10 @@ export class ShowDate {
 </template>
 ```
 
+Alternatively you can make the value converter global and drop the `<require>` as described in the chapter *Smart resources*.
+
+### Bi-directional converter
+
 You can make the converter bi-directional, by adding a `fromView` method.
 Here we set the week of the day, using the `day(weekDay)` setter, then convert to a Javascript Date via `toDate()`.
 
@@ -66,47 +72,7 @@ export class DayNameValueConverter {
   }
 ```
 
-To avoid having to require the value converter each time, we can add it as a global resource in `resources/index.ts`
-
-```ts
-export function configure(config: FrameworkConfiguration) {
-  config.globalResources([
-    // ...
-    './value-converters/date-day-name'
-  ]);
-}
-```
-
-Alternatively, add an `index.ts` file in `value-converters` folder to re-export an array of value converters which you then add to the array.
-
-`index.ts`
-
-```ts
-export default [
-  'date-day-name'
-]
-```
-
-```ts
-import converters from './value-converters';
-import elements from './elements';
-// ...
-
-const resources = {
-  converters: converters.map(name => './value-converter/' + name),
-  elements: elements.map(name => './elements/' + name)
-  // ...
-}
-
-Using [Array.reduce](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce) we can aggregate all the resources
-
-const allResources = Object.values(resources)).reduce((all, res) => all.concat(res), [])
-
-// Then make all resources global :)
-export function configure(config: FrameworkConfiguration) {
-  config.globalResources(allResources);
-}
-```
+### Locales
 
 To use a different locale, simply configure it from `main.ts` or wherever you control your locale and similar configurations (such as from a custom locale selector element?)
 
