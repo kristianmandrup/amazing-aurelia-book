@@ -61,7 +61,7 @@ class RouteLoading {
       const loader = new Loader();
       const routeLoader = new RouterLoader(loader, this.router);
 
-      routeLoader.defineRoutes(routeFiles)      
+      routeLoader.defineRoutes(routeFiles)
   }
 }
 ```
@@ -72,12 +72,12 @@ Then instead use the `RouteLoading` base class in a routable view model.
 import { Router } from 'aurelia-router';
 
 @inject(Router)
-class ChildViewModel extends RouteLoading {  
+class ChildViewModel extends RouteLoading {
     configureRouter(config, router) {
       this.router = router;
       this.loadRoutes([
         './routes/main.json',
-        './routes/admin.json' 
+        './routes/admin.json'
       ])
     }
 }
@@ -86,7 +86,7 @@ class ChildViewModel extends RouteLoading {
 
 ## Route config decoration
 
-The project for this recipe can be found [here](https://github.com/kristianmandrup/aurelia-routing-demo)
+The project for this recipe can be found in [aurelia-routing-demo](https://github.com/kristianmandrup/aurelia-routing-demo)
 
 Configuring a router to work gracefully with the [Aurelia best practices app layout](http://patrickwalters.net/my-best-practices-for-aurelia-application-structure/)
 
@@ -397,6 +397,149 @@ export class MyRouter extend Router {
 ```
 
 Now for any viewModel with router we can instead inject the `MyRouter` singleton which provides a `viewModelLocation` we can use to define different VM location strategy, while still have access to the original Router with the default strategy only. Pure Awesomeness!
+
+### An "intelligent" child router
+
+The child router by default resolves moduleId relative to the parent router.
+If we mount the child router in a nested folder, it is currently unaware of this fact. This is why a child router `moduleId` must be relative to the parent router location, not relative to its own location.
+
+Example: nested parent/child router
+
+```bash
+/src
+  app.ts // parent router
+  /contacts
+    index.ts // child router
+    details.ts
+```
+
+Parent router mounting a nested Contacts child router at `./contacts/index`
+
+```ts
+{ route: '/contacts',  moduleId: './contacts/index', name:'contacts', nav: true,   title: 'Contacts' }
+```
+
+Child router `details` route
+
+```
+{
+  route: '/contacts/:id/details',
+  moduleId: './contacts/details',
+  name: 'contact-details', 
+  nav: true, 
+  href: 'contact/details' 
+}
+```
+
+In this scenario we would ideally like the child router to know where it has been mounted so it's `moduleId` resolution is relative to its own location so that `moduleId: './details'` would resolve to `./contacts/details`.
+
+One strategy could be to add a `root: ` option to the router and then resolve according to this root if present. Let's use `join` from `aurelia-path` to achieve this, ie. we join root on parentPath is root is present on the router: `join(parentPath, this.root)`
+
+```
+import {join, relativeToFile} from 'aurelia-path';
+
+export class MyRouter extend Router {
+
+  viewModelLocation(config) {
+    let parentPath = Origin.get(this.container.viewModel.constructor).moduleId;
+    parentPath = this.root ? join(parentPath, this.root) : parentPath;
+    return relativeToFile(config.moduleId, parentPath);
+  }
+}
+```
+
+This naive solution has one potential downside as we scale the app. In case we want to move the router or change the folder name, we need to remember to update the `root` on the router. The child router should not need to know where it is mounted. This is the responsibility of the parent router.
+However curently, there is no way to distinguish a child router being mounted as it is just another VM from the Parent router's perspective. We need to add more metadata and for this we should use the `settings` object on the route:
+
+`settings: {router: true}`
+
+Parent router mounting the nested `contacts` router
+
+```ts
+{ route: '/contacts',  moduleId: './contacts/index', name:' contacts', nav: true,   title: 'Contacts', settings: {router: true} }
+```
+
+Then our `viewModelLocation` becomes a bit more complex. We can reference the parent router via `this.container.viewModel`. Then we add a method `childRouters()` to filter the routes that are routers themselves, then from this list we find the `moduleId` of the route that matches on the `name` of the child router.
+
+```ts
+  routeModuleId(name) {
+    return routes.find(route => route.name === name);
+  }
+
+  childRouters() {
+    return routes.filter(route => return route.settings.router === true);
+  }
+
+  viewModelLocation(config) {
+    let parent = this.container.viewModel;
+    let root = this.root;
+    if (parent) {
+      let route = parent.childRouters().routeModuleId(this.name);
+      root = route.moduleId;
+    }
+
+    let parentPath = Origin.get(parent.constructor).moduleId;
+    parentPath = this.root ? join(parentPath, this.root) : parentPath;
+    return relativeToFile(config.moduleId, parentPath);
+  }
+```
+
+For this infrastructure to work, all we need to do is to name our child router `Contacts` in `contacts/index.ts`:
+
+```ts
+@inject(MyRouter)
+export class Contacts {
+  name = 'contacts';
+
+  //...
+}
+```
+
+Now we are good to go!!
+
+### Nested routing paths
+
+Let's imagine a senario where each user has his/her own list of contacts and we want to render a specific contact for a given user.
+
+`route: '/users/:userId/contacts/:contactId/details'`
+
+It would be nice if we could have the parent router take care of the *users* part and a child router take care of the contacts while playing nice together.
+Perhaps we could add to the settings of the child router mount configuration:
+
+`settings: {router: true, mountRoute: '/users/:userId'}`
+
+Now we want to have our child router decorate its user routes be automatically prepended with the `rootRoute` path, effectively `join('/users/:userId', 'contacts/:contactId/details')` and so on.
+
+For this we can use a routes config decoration pattern directly on the router.
+
+`router.map(createRootPathDecorator(nestedModuleId, settings));`
+
+```ts
+// joins route patterns of mounting point and self
+// ie. /users/:userId + '/' + contacts/:contactId/details
+function createNestedRoute(nestedRoute, mountRoute) {
+  route.route = [mountRoute, nestedRoute.route].join('/');
+}
+
+export class MyRouter extend Router {
+
+  get mountRoute() {
+    let parent = this.container.viewModel;
+    // access the parent router and find the
+    let mountRoute = parent.childRouters().routeModuleId(this.name);
+    return mountRoute ? mountRoute.settings.rootRoute : null;
+  }
+
+  createNestedRoutes() {
+    let mountRoutePattern = this.mountRoute;
+    if (!mountRoutePattern) {
+      return;
+    }
+    this.routes.map(route => return createNestedRoute(route, mountRoutePattern));
+  }
+```
+
+Now we should be able to mount the `Contacts` router on the Users route and have it reflect the users route pattern. We can also mount it on the root Application router and have it work "on its own". Flexibility and agility at its best :)
 
 ### Router API
 
