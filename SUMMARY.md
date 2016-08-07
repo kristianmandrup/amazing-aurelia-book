@@ -5,10 +5,11 @@
 * [Project structure](project-structure.md)
 * [Basic app structure](application-structure.md)
 * [The main actors](the-main-actors.md)
+* [Smart resource management](smart-resource-management.md)
 * [Basic composition](composing-an-app.md)
 * [Basic routing](basic-routing.md)
 * [Advanced routing](advanced-routing.md)
-* [Advanced composition](advanced-composition.md)
+* Smart resource management
 * [App Configuration](app-configuration.md)
 * [Forms and Validation](forms-and-validation.md)
 * [Value converters](custom-value-converters.md)
