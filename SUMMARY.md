@@ -9,7 +9,8 @@
 * [Basic composition](composing-an-app.md)
 * [Basic routing](basic-routing.md)
 * [Advanced routing](advanced-routing.md)
-* Smart resource management
+* [Composition](composition.md)
+* [Smart resource management](smart-resource-management.md)
 * [App Configuration](app-configuration.md)
 * [Forms and Validation](forms-and-validation.md)
 * [Value converters](custom-value-converters.md)
