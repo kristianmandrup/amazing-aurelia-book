@@ -1,6 +1,6 @@
 # Advanced Composition
 
-Widget designer with Dragula drag'n drop :)
+TODO: Widget designer with Dragula drag'n drop :)
 
 From [report builder with Aurelia composition](https://www.sitepoint.com/composition-aurelia-report-builder/)
 
@@ -10,7 +10,7 @@ The basic idea of composition in computer science is to take small entities, in 
 
 An important thing to consider when talking about visual composition is the difference between *heterogeneous* and *homogeneous* sub-items. In order to understand this, lets look at the following figure.
 
-*FIGURE*
+![Composition types](/images/composition-types.png)
 
 *Homogeneous composition*, as the name suggests, this is all about rendering items which have the same type and only varying content. This type of composition is used in most frameworks when creating repeated lists. As the example depicts, imagine a simple list of items being rendered sequentially one after another. On the right side we can see an example of *heterogeneous composition*. The major difference is the assembly of items which have different types and views. The example demonstrates a page consisting of several building blocks with different content and purpose.
 
