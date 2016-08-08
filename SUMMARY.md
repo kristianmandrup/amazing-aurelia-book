@@ -25,4 +25,5 @@
 * [Authentication](advanced-composition.md)
 * [Scalable app structure](scalable-app-structure.md)
 * Multiple apps
+* [Breeze entity management](breeze-entity-management.md)
 
