@@ -27,4 +27,5 @@
 * Multiple apps
 * [Breeze entity management](breeze-entity-management.md)
 * [Authentication](authentication.md)
+* [Authorization](authorization.md)
 
