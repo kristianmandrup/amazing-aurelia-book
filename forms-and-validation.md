@@ -222,3 +222,194 @@ Multiple select drop down via `repeat.for` on `someOptions` Array for `<option>`
 </template>
 ```
 
+## Using aurelia-form plugin
+
+What Aurelia form does, is leverage Aurelia's strengths, and create a standardized way of describing forms simply using objects and arrays.
+Some of the features this plugin provides include:
+
+- multi css-framework support
+- [aurelia-orm](http://aurelia-orm.spoonx.org/) support (forms based on entity definition, no need to make a schema)
+- validation
+- concise way of describing forms using schemas
+- ...
+
+### Installation
+
+`npm install aurelia-form`
+
+Then add the plugin in your plugins configuration, such as in `main.ts`
+
+`.plugin('aurelia-form')`
+
+### Usage
+
+`aurelia-form` requires a schema definition of the form as follows:
+
+```ts
+export class Signup {
+  constructor() {
+    let schema = [{
+      key: 'email',
+      type: 'string'
+    },{
+      key: 'password',
+      type: 'string'
+    }];
+
+    let credentials = {
+      email: '',
+      password: ''
+    };
+
+    let submit = (credentials) => {
+      console.log(credentials);
+    };
+
+    this.loginForm = {schema, credentials, submit};
+  }
+}
+```
+
+`signup.html`
+
+```html
+<template>
+  <schema-form
+    submit.delegate="loginForm.submit(loginForm.credentials)"
+    schema.bind="this.loginForm.schema"
+    model.bind="this.loginForm.credentials"
+  ></schema-form>
+<template>
+```
+
+Aurelia-form leverages [aurelia-view-manager](aurelia-view-manager.spoonx.org)
+
+## Models
+
+At the highest level is the Form model
+
+```
+let user = {
+  name: 'John'
+  email: 'john@jmail.tron'
+};
+```
+
+The element defines presentation details for the form field of the specific model attribute targeted by `key`.
+
+```ts
+let nameElement = {
+  // Hide the label when is false.
+  label: false,
+  type: 'string',
+
+  // key what the property to alter in the User model
+  key: 'name'
+}
+```
+
+You can add an `attributes` object to specify specific attribute values of the field.
+
+```ts
+let nameElement = {
+  // ...
+  attributes: {
+    readonly: true
+  }
+}
+```
+
+A schema is a collection of elements:
+
+```
+let username = {
+  type:'text',
+  key: 'username'
+};
+
+let password = {
+  type:'password',
+  key: 'password'
+};
+
+this.credentialsSchema = [
+  username,
+  password
+];
+```
+
+Having a schema is not enough. We also need a model to populate it. That is where the key property in our schema definitions comes into play.
+
+### Types
+
+- text
+- button
+- color
+- date
+- datetime
+- 'datetime-local'
+- email
+- month
+- number
+- password
+- range
+- search
+- tel
+- time
+- urlweek
+
+### Collections
+
+Collections are used when having a one to many relationship between "things". An example would be a `shoppingCart` with `products`.
+
+
+```
+/* model */
+
+let shoppingCart = {
+  name: 'Mario',
+  products: [
+    {name: 'cheesy pizza' 10, amount: 2},
+    {name: 'meat pizza' 10, amount: 2},
+    {name: 'hot-dog crust pizza' 10, amount: 2}
+  ]
+}
+```
+
+```ts
+let productSchema = [
+  nameElement,
+  amountElement
+];
+
+let productElement = {
+  type: 'collection',
+  key: 'products'
+  schema: productSchema
+};
+
+let shoppingCartSchema = [
+  nameElement,
+  productElement
+];
+```
+
+### fieldset nested
+
+TODO
+
+### checkboxes
+
+TODO
+
+### radios
+
+TODO
+
+### select
+
+TODO
+
+### actions buttons
+
+TODO
