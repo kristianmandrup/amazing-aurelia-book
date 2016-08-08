@@ -6,8 +6,6 @@ At the end also an example of Using [Breeze with Validations](https://www.danyow
 
 ## Text input
 
-Also see [this forms tutorial](http://www.tutorialspoint.com/aurelia/aurelia_forms.htm) for the basics.
-
 `signup.ts`
 
 ```ts
