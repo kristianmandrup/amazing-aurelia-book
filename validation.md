@@ -172,6 +172,78 @@ At this point the view looks like this:
 
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
-</template>  
+</template>
 ```
 
+## Form validation with Breeze
+
+The [aurelia-breeze](https://github.com/jdanyow/aurelia-breeze) plugin now ships with a custom attribute that automates the task of displaying all property-level and entity-level validation errors.
+
+Consider the following bootstrap-style form bound to a Breeze `Person` entity:
+
+```html
+<form submit.delegate="submit()">
+  <div class="form-group">
+    <label for="first-name">First Name</label>
+    <input type="text" value.bind="entity.firstName"
+           class="form-control" id="first-name" placeholder="First Name">
+  </div>
+  <div class="form-group">
+    <label for="last-name">Last Name</label>
+    <input type="text" value.bind="entity.lastName"
+           class="form-control" id="last-name" placeholder="Last Name">
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
+</form>
+```
+
+We can display validation errors in this form by adding the new `breeze-validation` custom attribute to the form:
+
+```html
+<form submit.delegate="submit()" breeze-validation.bind="entity">
+  ...
+</form>
+```
+
+The rest of the form markup does not need to change!
+
+This is made possible by Aurelia's powerful templating and binding engines. The `breeze-validation` attribute is able to locate the two-way bindings on the form, determine whether the binding is to a Breeze entity property and discover the name of the property- even in complex binding expressions using value-converters!
+
+The `breeze-validation` attribute can be bound to a single breeze `Entity` or to a breeze `EntityManager` instance for scenarios where your form is bound to multiple entities or validation errors could arise from other entities that aren't used in the form.
+
+The logic that displays the validation errors lives in an implementation of the `ErrorRenderer` interface and is separate from the core logic of the `breeze-validation` attribute. 
+
+The aurelia-breeze plugin ships with a `BootstrapErrorRenderer` which you could use as the starting point for creating your own error rendering logic. For example, if you created a `FoundationErrorRenderer` that uses the [Zurb Foundation CSS](foundation.zurb.com/), you could register it in your Aurelia application's `main.js` by doing following:
+
+```ts
+import {ErrorRenderer} from 'aurelia-breeze';  
+import {FoundationErrorRenderer} from './foundation-error-renderer';
+
+export function configure(aurelia) {  
+  ...
+  ...
+  aurelia.container.registerTransient(ErrorRenderer, FoundationErrorRenderer); 
+  ...
+  ...
+}
+```
+
+Do I need a `<form>` element?
+
+No. You can put the `breeze-validation` attribute on any element and it will wire up the validation for any two-way bindings in the descendent elements.
+
+### Customization
+
+You can customize the `displayName` of the property. By default it's the property name. You can set the display name to something more user friendly like this.
+
+```ts
+const custType = myEntityManager.metadataStore.getEntityType("Customer");
+let dp = custType.getProperty("companyName");
+dp.displayName = "My custom display name";
+```
+
+You could even write a routine to apply display names across all entity types and properties in the metadata store using a convention or manually maintained property-name to display-name mapping.
+
+Customize the error message template. Look at [Breeze validation docs](http://breeze.github.io/doc-js/validation.html#customize-the-message-templates) for details
+
+On the server, extend the standard breeze metadata with metadata pulled from your server-side entity's property attributes. Then on the client, apply the extended metadata as needed. [Here is the code](http://stackoverflow.com/questions/26570638/how-to-add-extend-breeze-entity-types-with-metadata-pulled-from-property-attribu/26575081#26575081) for this technique.
