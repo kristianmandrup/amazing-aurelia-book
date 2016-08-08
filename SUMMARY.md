@@ -28,4 +28,5 @@
 * [Breeze entity management](breeze-entity-management.md)
 * [Authentication](authentication.md)
 * [Authorization](authorization.md)
+* [Advanced views](advanced-views.md)
 
