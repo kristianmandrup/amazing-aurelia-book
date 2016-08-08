@@ -12,7 +12,7 @@
 * [Composition](composition.md)
 * [Smart resource management](smart-resource-management.md)
 * [App Configuration](app-configuration.md)
-* [Forms and Validation](forms-and-validation.md)
+* [Forms](forms-and-validation.md)
 * [Value converters](custom-value-converters.md)
 * [Adding features](adding-features.md)
 * [Modal wizard](modal-wizard.md)
