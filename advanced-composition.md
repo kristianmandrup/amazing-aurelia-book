@@ -19,19 +19,19 @@ Aurelia on the other hand offers, in addition to the router-view, an alternative
 ### Using Aurelia’s Compose Element
 In order to make use of visual composition within Aurelia, we can utilize the predefined compose custom element. It operates on one of Aurelia’s key conventions, the view and view-model (VM) pairs (which this article will also be referring to as a page). In short, compose allows us to include a page at any particular position inside another view.
 
-The following snippet demonstrates how to use it. At the position we’d like to include the Hello World page, we simply define the custom element and set the value of its view-model attribute to the name of the file containing the VM definition.
+The following snippet demonstrates how to use it. At the position we’d like to include the `Hello World` page, we simply define the custom element and set the value of its view-model attribute to the name of the file containing the VM definition.
 
 ```html
 <template>
   <h1>Hello World</h1>
-  <compose view-model="hello-world" 
+  <compose view-model="hello-world"
            model.bind="{ demo: 'test' }"></compose>
 </template>
 ```
 
 If we need to pass some additional data to the referenced module, we may use the model attribute and bind a value to it. In this case we pass on a simple object, but could also reference a property from the calling VM.
 
-Now the HelloWorld VM can define an activate method, which will get the bound model data passed as an argument. This method may even return a Promise, e.g. in order to get data from the backend, which will make the composition process wait until it’s resolved.
+Now the `HelloWorld` VM can define an activate method, which will get the bound model data passed as an argument. This method may even return a `Promise`, e.g. in order to get data from the backend, which will make the composition process wait until it’s resolved.
 
 ```
 export class HelloWorld {
@@ -43,7 +43,7 @@ export class HelloWorld {
 }
 ```
 
-Besides loading the VM, the corresponding HelloWorld view will also be loaded and its contents placed into the compose element.
+Besides loading the VM, the corresponding `HelloWorld` view will also be loaded and its contents placed into the compose element.
 
 But let’s say that we don’t want to follow that default convention of VM and view pairs. In this case we can use the additional attribute view and point it to the HTML file we’d like to use as a view.
 
@@ -53,7 +53,7 @@ But let’s say that we don’t want to follow that default convention of VM and
          view="alternative-hello-world.html"></compose>
 ```
 
-In this case the VM will still be loaded, but instead of loading hello-world.html the composition engine will insert the contents of alternative-hello-world.html into the compose element. Now what if we need to decide dynamically which view should be used? One way we can accomplish this is to bind the view attribute to a property of the calling VM, whose value will be determined by some logic.
+In this case the VM will still be loaded, but instead of loading hello-world.html the composition engine will insert the contents of `alternative-hello-world.html` into the compose element. Now what if we need to decide dynamically which view should be used? One way we can accomplish this is to bind the view attribute to a property of the calling VM, whose value will be determined by some logic.
 
 ```
 // calling VM
@@ -69,7 +69,7 @@ export class App {
          view.bind="pathToHelloWorld"></compose>
 ```
 
-This is fine but might not fit each use case. What if the HelloWorld VM needs to decide itself which view it wants to show? In that case we simply let it implement a function called getViewStrategy which has to return the name of the view file as a string. An important thing to note is, that this will be called after the activate function, which allows us to use the passed on model data, to determine which view should be displayed.
+This is fine but might not fit each use case. What if the `HelloWorld` VM needs to decide itself which view it wants to show? In that case we simply let it implement a function called `getViewStrategy` which has to return the name of the view file as a string. An important thing to note is, that this will be called after the activate function, which allows us to use the passed on model data, to determine which view should be displayed.
 
 ```
 export class HelloWorld {
@@ -89,14 +89,15 @@ export class HelloWorld {
 ```
 
 ### Preparing the Project Setup
-Now that we’ve seen how the compose element does its magic, lets get a look at the report builder application. In order to kick start the development, we’ve built it upon the Skeleton Navigation App. Some parts, such as the router, have been stripped off since this application is using just a single complex view composed of other sub-views. To get started, either visit our GitHub repo, download the master branch and extract it to a folder, or clone it locally by opening a terminal and executing following command:
+Now that we’ve seen how the compose element does its magic, lets get a look at the report builder application. In order to kick start the development, we’ve built it upon the [Skeleton Navigation App](https://github.com/aurelia/skeleton-navigation). Some parts, such as the router, have been stripped off since this application is using just a single complex view composed of other sub-views. To get started, either visit our GitHub repo, download the master branch and extract it to a folder, or clone it locally by opening a terminal and executing following command:
 
-git clone https://github.com/sitepoint-editors/aurelia-reporter.git
-To complete the installation, please follow the steps listed under “Running The App” in the project’s README.
+`git clone https://github.com/sitepoint-editors/aurelia-reporter.git`
+
+To complete the installation, please follow the steps listed under “Running The App” in the project’s `README`.
 
 ###Creating the Report View
 
-Our app’s entry point is the page app.html (located in the src folder). The VM (app.js) is just an empty class, pre-loading Twitter Bootstrap. The view, as depicted in the snippet below, acts as the main app’s container. You’ll notice that it composes the screen out of two separate pages called toolbox and report. The first acts as our container for various draggable tools whereas the second is the sheet you place those widgets on.
+Our app’s entry point is the page app.html (located in the src folder). The VM (`app.js`) is just an empty class, pre-loading Twitter Bootstrap. The view, as depicted in the snippet below, acts as the main app’s container. You’ll notice that it composes the screen out of two separate pages called toolbox and report. The first acts as our container for various draggable tools whereas the second is the sheet you place those widgets on.
 
 ```html
 <template>
@@ -117,22 +118,22 @@ Looking at toolbox.html we see that the view is outputting a list of available w
 <template>
   <h3>Toolbox</h3>
   <ul class="list-unstyled toolbox au-stagger" ref="toolboxList">
-    <li repeat.for="widget of widgets" 
-        class="au-animate" 
+    <li repeat.for="widget of widgets"
+        class="au-animate"
         title="${widget.type}">
           <i class="fa ${widget.icon}"/> ${widget.name}
     </li>
   </ul>
-  <button click.delegate="printReport()" 
-          type="button" 
+  <button click.delegate="printReport()"
+          type="button"
           class="btn btn-primary fa fa-print"> Print</button>
-  <button click.delegate="clearReport()" 
+  <button click.delegate="clearReport()"
           type="button" 
           class="btn btn-warning fa fa-remove"> Clear Report</button>
 </template>
 ```
 
-The toolbox VM exposes those widgets by declaring an identically named property and instantiating it inside its constructor. This is done by importing the widgets from their respective locations and passing their instances — created by Aurelia’s dependency injection — to the widgets array. In addition an EventAggregator is declared and assigned to a property. We’ll get to this a bit later.
+The toolbox VM exposes those widgets by declaring an identically named property and instantiating it inside its constructor. This is done by importing the widgets from their respective locations and passing their instances — created by Aurelia’s dependency injection — to the widgets array. In addition an `EventAggregator` is declared and assigned to a property. We’ll get to this a bit later.
 
 ```ts
 import {inject} from 'aurelia-framework';
@@ -162,7 +163,7 @@ export class Toolbox {
 }
 ```
 
-So what do those widgets contain? Looking at the project structure, we can find all of them inside the sub-folder src/widgets. Lets start with a simple one: the logo widget. This widget simply shows an image inside its view. The VM follows a default pattern by implementing the properties type, name and icon. We’ve seen those being used in the toolbox repeater block.
+So what do those widgets contain? Looking at the project structure, we can find all of them inside the sub-folder `src/widgets`. Lets start with a simple one: the logo widget. This widget simply shows an image inside its view. The VM follows a default pattern by implementing the properties type, name and icon. We’ve seen those being used in the toolbox repeater block.
 
 ```
 // logo.html
@@ -173,18 +174,18 @@ So what do those widgets contain? Looking at the project structure, we can find 
 
 ```
 // logo.js
-export class Logo { 
+export class Logo {
   type = 'logo';
   name = 'Logo';
   icon = 'fa-building-o';
 }
 ```
 
-Looking at the textblock widget we see an additional activate method, accepting initial model data from the composition engine
+Looking at the textblock widget we see an additional `activate` method, accepting initial model data from the composition engine
 
 ```
 // textblock.js
-export class Textblock {    
+export class Textblock {
   type = 'textblock';
   name = 'Textblock';
   icon = 'fa-font';
@@ -228,11 +229,12 @@ removeWidget(widget) {
 ```
 
 ### Inter-Component-Communication via Events
-We’ve mentioned that the toolbox has a “Clear Report” button, but how does that trigger the clearance of all the widgets added to the report page? One possibility would be to include a reference to the report VM inside the toolbox and call the method this would provide. This mechanism would however, introduce a tight coupling between these two elements, as the toolbox wouldn’t be usable without the report page. As the system grows, and more and more parts become dependent on each other, which will ultimately result in an overly-complex situation.
+
+We’ve mentioned that the toolbox has a `Clear Report` button, but how does that trigger the clearance of all the widgets added to the report page? One possibility would be to include a reference to the report VM inside the toolbox and call the method this would provide. This mechanism would however, introduce a tight coupling between these two elements, as the toolbox wouldn’t be usable without the report page. As the system grows, and more and more parts become dependent on each other, which will ultimately result in an overly-complex situation.
 
 An alternative is to use application-wide events. As shown in the figure below, the toolbox’s button would trigger a custom event, which the report would subscribe to. Upon receiving this event, it would perform the internal task of emptying the widgets list. With this approach both parts become loosely coupled, as the event might be triggered by another implementation or even another component.
 
-To implement this we can use Aurelia’s EventAggregator. If you look at the toolbox.js code snippet above, you can see that the EventAggregator has already been injected into the toolbox VM. We can see it in action in the clearReport method, which simply publishes a new event with the name clearReport.
+To implement this we can use Aurelia’s `EventAggregator`. If you look at the toolbox.js code snippet above, you can see that the `EventAggregator` has already been injected into the toolbox VM. We can see it in action in the `clearReport` method, which simply publishes a new event with the name `clearReport`.
 
 ```ts
 clearReport() {
