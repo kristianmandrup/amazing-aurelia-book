@@ -718,4 +718,104 @@ activate() {
 ...
 ```
 
-As you can see, the only real difference here is that the GET request we're making is going to the protected/random-quote endpoint. If there is no valid JWT in localStorage, we won't be able to get to this route. If somehow we got to it, the request would fail because no JWT would be sent to the server.
+As you can see, the only real difference here is that the GET request we're making is going to the `protected/random-quote` endpoint. If there is no valid JWT in `localStorage`, we won't be able to get to this route. If somehow we got to it, the request would fail because no JWT would be sent to the server.
+
+### Using Aurelia with Auth0
+
+[Auth0](https://auth0.com) issues [JSON Web Tokens](https://jwt.io/introduction/) on every login for your users. This means that you can have a solid [identity infrastructure](https://auth0.com/docs/identityproviders), including [single sign-on](https://auth0.com/docs/sso), user management, support for social (Facebook, Github, Twitter, etc.), enterprise (Active Directory, LDAP, SAML, etc.) and your own database of users with just a few lines of code.
+
+You can use [Lock](https://auth0.com/docs/libraries/lock) to integrate Auth0 with Aurelia as well and avoid having to deal with authentication!
+
+To start, [sign up](https://auth0.com/signup) for your free Auth0 account if you haven't already. Then bring in the Auth0Lock script.
+
+```html
+  <!-- Auth0 Lock script -->
+  <script src="//cdn.auth0.com/js/lock-8.1.min.js"></script>
+
+  <!-- Setting the right viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+```
+
+Next, instantiate Lock with your Auth0 credentials.
+
+```js
+// app.js
+
+export class App {
+
+  lock = new Auth0Lock('AUTH0_CLIENT_ID', 'AUTH0_DOMAIN');
+
+  ...
+}
+```
+
+To log a user in, create a `login` method that opens the `Lock` widget and saves the returned profile and JWT in local storage.
+
+```js
+// app.js
+
+login() {
+  this.lock.show((err, profile, token) => {
+    if(err) {
+      console.log(err);
+    }
+    else {
+      localStorage.setItem('profile', JSON.stringify(profile));
+      localStorage.setItem('id_token', token);
+      this.isAuthenticated = true;
+    }
+  });
+}
+```
+
+To make authenticated HTTP calls, simply attach the user's JWT as an Authorization header. This can be done on a per request basis, or you can configure all HTTP calls to include the header.
+
+```js
+// app.js
+
+// Send the Authorization header with the JWT in a single HTTP call
+
+getSecretThing() {
+  this.http.fetch('/api/protected-route', {
+    headers: {
+      'Authorization': 'Bearer ' + localStorage.getItem('id_token')
+    }
+  })
+  .then(response => response.json())
+  .then(data => this.secretThing = data.text);
+}
+// Send the Authorization header in all HTTP calls
+
+// app.js
+
+constructor(http) {
+  this.http = http;
+  this.http.configure(config => {
+    config.withDefaults({
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('id_token')
+      }
+    });
+  });
+}
+```
+
+To log the user out, simply remove their profile and JWT from local storage.
+
+```js
+// app.js
+
+logout() {
+  localStorage.removeItem('profile');
+  localStorage.removeItem('id_token');
+  this.isAuthenticated = false;   
+}
+```
+
+That's it! You now have authentication with Auth0 in your Aurelia app.
+
+For more details, including how to protect certain route in your app, check out the Auth0 Aurelia docs. There you can also download a seed project to get started from scratch.
+
+### Wrapping Up
+
+Protecting routes that we want to limit to logged-in users is actually quite simple with the aurelia-auth plugin because we can set the app up such that, if users aren't logged in, they can't see or reach protected routes. If, for whatever reason, users were able to get to a route they shouldn't be at and they don't have a valid JWT, any HTTP requests they make will be denied by the server. Properly authenticated users will have a valid JWT in localstorage, which will be sent along as a header with all the requests they make which will give them access to protected resources.
