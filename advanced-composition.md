@@ -10,6 +10,8 @@ The basic idea of composition in computer science is to take small entities, in 
 
 An important thing to consider when talking about visual composition is the difference between *heterogeneous* and *homogeneous* sub-items. In order to understand this, lets look at the following figure.
 
+*FIGURE*
+
 *Homogeneous composition*, as the name suggests, this is all about rendering items which have the same type and only varying content. This type of composition is used in most frameworks when creating repeated lists. As the example depicts, imagine a simple list of items being rendered sequentially one after another. On the right side we can see an example of *heterogeneous composition*. The major difference is the assembly of items which have different types and views. The example demonstrates a page consisting of several building blocks with different content and purpose.
 
 A lot of frameworks offer that functionality via router-views, where specific view-regions are placed on the screen and different route endpoints are loaded up. The obvious drawback of this method is that the application requires a router. Besides that, creating complex view compositions can still become quite a tedious task, especially if you take nested compositions into account.
@@ -17,6 +19,7 @@ A lot of frameworks offer that functionality via router-views, where specific vi
 Aurelia on the other hand offers, in addition to the router-view, an alternative approach by exposing visual composition as a first-class feature via a custom element. That way it enforces the separation of concerns even on a visual level and thus leads the developer towards the creation of small and reusable components. The result is increased modularity and the chance to create new views out of already existing ones.
 
 ### Using Aurelia’s Compose Element
+
 In order to make use of visual composition within Aurelia, we can utilize the predefined compose custom element. It operates on one of Aurelia’s key conventions, the view and view-model (VM) pairs (which this article will also be referring to as a page). In short, compose allows us to include a page at any particular position inside another view.
 
 The following snippet demonstrates how to use it. At the position we’d like to include the `Hello World` page, we simply define the custom element and set the value of its view-model attribute to the name of the file containing the VM definition.
