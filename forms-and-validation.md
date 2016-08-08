@@ -40,16 +40,6 @@ export class Signup {
 For `<input>` elements, `value.bind` creates a two-way binding by default.
 `submit.delegate`
 
-## Validation
-
-From this [validation blog post](https://www.danyow.net/aurelia-validation-alpha/)
-
-Validation consists of two separate libraries with robust set of standard behaviors and a simpler, more flexible API surface for easier customization:
-
-`aurelia-validation` - a generic validation library that provides a `ValidationController`, a validate binding behavior, a `Validator` interface and more.
-
-`aurelia-validatejs` - a `validatejs` powered implementation of the `Validator` interface along with fluent and decorator based APIs for defining rules for your components and data.
-
 ### Create registration form
 
 `registration-form.js`
@@ -184,6 +174,17 @@ export class SomeViewModel {
 </template>
 ```
 
+## Validation
+
+From this [validation blog post](https://www.danyow.net/aurelia-validation-alpha/)
+
+Validation consists of two separate libraries with robust set of standard behaviors and a simpler, more flexible API surface for easier customization:
+
+`aurelia-validation` - a generic validation library that provides a `ValidationController`, a validate binding behavior, a `Validator` interface and more.
+
+`aurelia-validatejs` - a `validatejs` powered implementation of the `Validator` interface along with fluent and decorator based APIs for defining rules for your components and data.
+
+
 ### Install validation plugin
 
 `$ npm install aurelia-validation`
@@ -307,6 +308,8 @@ The binding behavior will obey the controller's validation trigger configuration
 We're almost done. One of the last things we need to do is define how validation errors will be rendered. This is done by creating one or more `ValidationRenderer` implementations. A validation renderer implements a simple API render(error, target) and unrender(error, target) (error is a `ValidationError` instance and target is the binding's DOM element).
 
 Since we're using bootstrap, we'll create a renderer that adds the `has-error` css class to the `form-group` `div` of fields that have errors. We'll also add a `<span class="help-text">` elements to the `form-group` `div`, listing each of the field's errors. Here's the [BootstrapFormValidationRenderer code](https://gist.github.com/jdanyow/ea843c24956cfffff48bb21776291f6a) and this is what a rendered error will look like:
+
+![Field error](/images/field-error.png)
 
 ### Register the validation renderer with the component's controller.
 
