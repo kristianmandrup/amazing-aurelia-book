@@ -356,7 +356,8 @@ Having a schema is not enough. We also need a model to populate it. That is wher
 - search
 - tel
 - time
-- urlweek
+- url
+- week
 
 ### Collections
 
@@ -413,3 +414,165 @@ TODO
 ### actions buttons
 
 TODO
+
+### submit
+
+TODO
+
+### association
+
+TODO
+
+### conditional
+
+TODO
+
+## Model
+
+```ts
+  /* ./person.js */
+  export class Person {
+    userSchema = userSchema; // assuming we defined userSchema
+    groupSchema = groupSchema;  // assuming we defined groupSchema
+
+    /* minimal required models (just the objects) */
+
+    userModel = {};
+
+    groupModel = {
+      owner = userModel
+    };
+  }
+```
+
+## Components
+
+Aurelia-form provides several components. They give different levels of granularity when building a form. You might want to reuse the schema and the model, but would only want several of the form-fields to be rendered. Or you want a fancy layout that requires you to have a form form-field here and there. Aurelia-form let's you decide.
+
+Generate a complete form using the schema
+
+```
+  <schema-form
+    schema.bind="userSchema"
+    model.bind="userModel">
+  </schema-form>
+```
+
+
+Aurelia-form supports the aurelia-orm project. It does so by providing a public custom component named entity-form. To use it you must create an entity and pass it to the entity bindable. Read more about entities in the aurelia-orm docs.
+
+```
+    <entity-form entity.bind="entity"></entity-form>
+```
+
+Generates all the form fields without the <form> around it. Handy for when you want more control when composing a single form.
+
+```
+  <form-fields
+    model.bind="userModel"
+    schema.bind="userSchema">
+  </form-fields>
+```
+
+When things get really detailed you can choose to only generate a single form field.
+
+```
+  <form-field
+    value.bind="model.name"
+    element.bind="nameElement">
+  </form-field>
+```
+
+## Form
+
+The `Form` class of aurelia-form enables you to to get started a bit faster. When using the Form class you do have to install [aurelia-validatejs]() as a dependency. Let's see what it gives us out of the box.
+
+The class can be used in several ways. You can extend the view model or make new instances that are part of the view model's state.
+
+```ts
+    class Welcome extends Form {
+      constructor() {
+        super();
+
+        http('products.json').then(products => {
+
+            /***
+             * Model is reserved property on the Form class. It is used to
+             * trigger the registration of the validator.
+             */
+            this.model = products;
+        });
+      }
+    }
+```
+
+When used together with the schema-form element you get a nice synergy in which it will call the validate method of the extending Form class instance. Now that you have seen the extends version. Let's see the constructor version of it.
+
+```
+   /* constructor */
+
+   import {Form} from 'aurelia-form';
+
+   class Welcome extends {
+
+      constructor() {
+
+        /* a new form */
+
+        let credentials = new Form();
+
+        /* schema */
+
+        let password = {
+          type: 'password',
+          key:  'password'
+        };
+
+        let username = {
+          type: 'string',
+          key:  'username'
+        };
+
+        credentials.schema = [
+          username,
+          password
+        ];
+
+        /* model */
+
+        credentials.model = {
+          username: '',
+          password: ''
+        };
+
+        /* validation */
+
+        credentials.validator
+          .ensure('username')
+          .required()
+          .ensure('password')
+          .required();
+
+        /* avoid having `this` written everywhere */
+        this.credentials = credentials
+      }
+   }
+```
+
+All form related state is scoped to the form instance. Seeing what data belongs to what form is easy to discover. defining multiple forms in a view model is no problem.
+
+```
+    <schema-form
+      messages.bind = "credentials.messages"
+      schema.bind   = "credentials.schema"
+      model.bind    = "credentials.model">
+```
+
+### Translations
+
+Aurelia-form uses [aurelia-i18n]() to perform translations.
+Translation requires that aurelia-i18n is configured with `t` as the translating attribute.
+
+### Customization
+
+See [customization](http://aurelia-form.spoonx.org/customize.html) page.
