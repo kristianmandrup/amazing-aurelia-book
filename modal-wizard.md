@@ -7,6 +7,147 @@
 
 [aurelia dialog tutorial](http://www.tutorialspoint.com/aurelia/aurelia_dialog.htm)
 
+`npm install aurelia-dialog --save`
+
+Typings
+
+`typings install github:aurelia/dialog --save`
+
+```js
+export function configure(aurelia) {
+  aurelia.use
+    // ...
+    .plugin('aurelia-dialog');
+```
+
+You can use the dialog service to open a prompt -
+
+```js
+import {DialogService} from 'aurelia-dialog';
+import {Prompt} from './prompt';
+export class Welcome {
+  static inject = [DialogService];
+  constructor(dialogService) {
+    this.dialogService = dialogService;
+  }
+  submit(){
+    this.dialogService.open({ viewModel: Prompt, model: 'Good or Bad?'}).then(response => {
+      if (!response.wasCancelled) {
+        console.log('good');
+      } else {
+        console.log('bad');
+      }
+      console.log(response.output);
+    });
+  }
+}
+```
+
+This will open a prompt and return a promise that resolves when closed. If the user clicks out, clicks cancel, or clicks the 'x' in the top right it will still resolve the promise but will have a property on the response wasCancelled to allow the developer to handle cancelled dialogs.
+
+There is also an output property that gets returned with the outcome of the user action if one was taken.
+
+You can create your own view / view-model and use the dialog service to call it from your app's view-model -
+
+```js
+import {EditPerson} from './edit-person';
+import {DialogService} from 'aurelia-dialog';
+export class Welcome {
+  static inject = [DialogService];
+  constructor(dialogService) {
+    this.dialogService = dialogService;
+  }
+  person = { firstName: 'Wade', middleName: 'Owen', lastName: 'Watts' };
+  submit(){
+    this.dialogService.open({ viewModel: EditPerson, model: this.person}).then(response => {
+      if (!response.wasCancelled) {
+        console.log('good - ', response.output);
+      } else {
+        console.log('bad');
+      }
+      console.log(response.output);
+    });
+  }
+}
+```
+
+This will open a dialog and control it the same way as the prompt. The important thing to keep in mind is you need to follow the same method of utilizing a DialogController in your EditPerson view-model as well as accepting the model in your activate method -
+
+```js
+import {DialogController} from 'aurelia-dialog';
+
+export class EditPerson {
+  static inject = [DialogController];
+  person = { firstName: '' };
+  constructor(controller){
+    this.controller = controller;
+  }
+  activate(person){
+    this.person = person;
+  }
+}
+```
+
+and the corresponding view -
+
+```html
+<template>
+  <ai-dialog>
+    <ai-dialog-body>
+      <h2>Edit first name</h2>
+      <input value.bind="person.firstName" />
+    </ai-dialog-body>
+
+    <ai-dialog-footer>
+      <button click.trigger="controller.cancel()">Cancel</button>
+      <button click.trigger="controller.ok(person)">Ok</button>
+    </ai-dialog-footer>
+  </ai-dialog>
+</template>
+```
+
+### attach-focus custom attribute
+
+The modal exposes an `attach-focus` custom attribute that allows focusing in on an element in the modal when it is loaded. You can use this to focus a button, input, etc... Example usage -
+
+```html
+<template>
+  <ai-dialog>
+    <ai-dialog-body>
+      <h2>Edit first name</h2>
+      <input attach-focus="true" value.bind="person.firstName" />
+    </ai-dialog-body>
+  </ai-dialog>
+</template>
+```
+
+You can also bind the value of the attach-focus attribute if you want to alter which element will be focused based on a view model property.
+
+```
+<input attach-focus.bind="isNewPerson" value.bind="person.email" />
+<input attach-focus.bind="!isNewPerson" value.bind="person.firstName" />
+```
+
+### Global Settings
+
+You can specify global settings as well for all dialogs to use when installing the plugin via the configure method. If providing a custom configuration, you must call the useDefaults() method to apply the base configuration.
+
+```js
+export function configure(aurelia) {
+  aurelia.use
+    .standardConfiguration()
+    .developmentLogging()
+    .plugin('aurelia-dialog', config => {
+      config.useDefaults();
+      config.settings.lock = true;
+      config.settings.centerHorizontalOnly = false;
+      config.settings.startingZIndex = 5;
+    });
+
+  aurelia.start().then(a => a.setRoot());
+}
+```
+
 ## Content selectors
 
 ### The Problem
