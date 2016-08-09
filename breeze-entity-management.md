@@ -43,16 +43,25 @@ let query = new breeze.EntityQuery();
 
 ## Breeze REST server API
 
-We can use [breeze-rest-adapter](https://github.com/mradamlacey/breeze-rest-adapter) which is "A dataservice adapter for BreezeJS to connect to a generic REST API".
+We can use [breeze-rest-adapter](https://github.com/kristianmandrup/breeze-rest-adapter) which is "A dataservice adapter for BreezeJS to connect to a generic REST API".
+
+Note: I have recently updated the adapter to use ES6 classes and modules.
 
 ### Installation
 
-Simply include the data service adapter script file: 
-`breezeRestDataServiceAdapter.js`
-Include the JsonResultsAdapter script file: `breezeRestJsonResultsAdapter.js`
-Include the following code when setting up your Breeze Data Service:
+`import { ServiceAdapter, ResultsAdapter, default as register } from 'breeze-rest-adapter/es6';`
 
-`breeze.config.initializeAdapterInstances({dataService: "REST"});`
+Then register the `ServiceAdapter` with breeze: `register(breeze);`
+
+This will call `breeze.config.registerAdapter('dataService', ServiceAdapter);`
+
+The `ServiceAdapter` has `name = 'REST'` which identifies it.
+
+Now configure breeze to use the `REST` data service as follows:
+
+`breeze.config.initializeAdapterInstances({dataService: 'REST'});`
+
+The REST adapter expects the server to have a JSON REST API which delivers entities as follows:
 
 ```json
   // ...
@@ -70,7 +79,7 @@ Include the following code when setting up your Breeze Data Service:
 
 The data service adapter will look at all the changed entities in the local cache and build an object graph (based on the defined relationships in the metadata).
 
-Additionally this adapter makes the assumption that the backend service provides an `entityAspect` object that is a property of every entity. This is a helper property that allows the adapter to know which type of entity is being provided.
+This adapter makes the assumption that the backend service provides an `entityAspect` object that is a property of every entity. This is a helper property that allows the adapter to know which type of entity is being provided.
 
 You may also look at the generic [Edmunds sample](http://breeze.github.io/doc-samples/edmunds.html) for inspiration.
 Here is a [SPA example](http://breeze.github.io/doc-samples/intro-to-spa-ruby.html) using a [Ruby on Rails](http://rubyonrails.org/) Breeze adapter.

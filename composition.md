@@ -2,9 +2,68 @@
 
 TODO: Widget designer with Dragula drag'n drop :)
 
+From [aurelia-dynamic-composition](http://ilikekillnerds.com/2015/10/aurelia-dynamic-composition)
+
+One of my favourites parts of Aurelia is the compose element which allows you to dynamically render UI into the DOM. It is especially handy in situations where you want to dynamically render ViewModels inside of a loop like widgets or other dynamically composed elements.
+
+### Containerless <compose>
+One of the lesser known features of the compose element is the ability to specify a `containerless` attribute on the element. By default if you use the compose element your page will feature the element with the rendered contents inside.
+
+Sometimes you don’t want the compose element just the contents rendered inside because you might be using it to render table rows or parts in the DOM where the compose element would break the layout.
+
+```html
+<template>
+    <div repeat.for="widget of widgets">
+        <compose view-model="widgets/${widget.type}.js" containerless></compose>
+    </div>
+</template>
+```
+
+This would render the contents of the composed view minus the `<compose>` element, cool huh?
+
+### ViewModel-less <compose>
+Sometimes you might just want to render a HTML View and not concerned with ViewModel data. Using the `view` attribute we can render custom views without needing to specify anything else.
+
+In the below example if the widget type property is `table` then the view loaded would be: `table-view.html` – as you can see we can dynamically compose views without needing to pass in a ViewModel. This means the composed elements becomes databound to the surrounding context which is embedding the element.
+
+```html
+<template>
+    <div repeat.for="widget of widgets">
+        <compose view="${widget.type}-view.html"></compose>
+    </div>
+</template>
+```
+
+
+### Supply data via view-model to <compose>
+What good would being able to render custom components into your DOM be if you couldn’t pass in data as well? Using the model attribute we can pass in an object of data which becomes available in the ViewModel of our composed View.
+
+Assuming our widget objects have a data attribute which has an object of data, we can specify our compose element passes through this data so it can be used within the view. You can also pass through a Javascript class filename to view-model which allows you to use lifecycle methods like activate (which gets the data as its first argument as an object) inside of your ViewModel.
+
+```html
+<template>
+    <div repeat.for="widget of widgets">
+        <compose view="${widget.type}-view.html" model.bind="widget.data"></compose>
+    </div>
+</template>
+```
+
+### Accessing model.bind data
+To get data passed through to a `<compose>`` element, you can specify a `canActivate` or `activate` method inside of your viewmodel and the first parameter gives you the supplied model.
+
+```js
+export class MyViewModel {
+    activate(model) {
+        // model is the passed through object
+    }
+}
+```
+
+## Auelia report builder
+
 From [report builder with Aurelia composition](https://www.sitepoint.com/composition-aurelia-report-builder/)
 
-## What Is Visual Composition?
+### What Is Visual Composition?
 
 The basic idea of composition in computer science is to take small entities, in the case of object composition, simple objects/data types, and combine them into bigger and more complex ones. The same thing applies to function composition, where the result of one function is passed as the attribute to the next and so on. Visual composition shares this fundamental concept by allowing one to aggregate multiple distinct sub-views into a more complex view.
 
