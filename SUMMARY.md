@@ -29,4 +29,6 @@
 * [Authentication](authentication.md)
 * [Authorization](authorization.md)
 * [Advanced views](advanced-views.md)
+* [View data binding](view-data-binding.md)
+* [I18n and localisation](i18n-and-localisation.md)
 
