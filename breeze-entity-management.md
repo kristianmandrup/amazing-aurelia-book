@@ -1,10 +1,28 @@
 # Breeze entity management
 
-All about aurelia with Breeze.
+Now let's add Breeze entity management to our application.
 
-## Installation
+"Breeze is a library for rich client applications written in HTML and JavaScript. It concentrates on the challenge of building and maintaining highly responsive, data-intensive applications in which users search, add, update, and view complex data from different angles as they pursue solutions to real problems in real time."
+
+Breeze supports:
+- Rich queries
+- Client-side caching
+- Change tracking
+- Validation
+- Pluggable back-end
+- Data management
+- Batched saves
+- Library and Tooling support
+
+We will use the excellent [aurelia-breeze](https://github.com/jdanyow/aurelia-breeze) plugin for this.
+
+## Install and configure
+
+We can install the aurelia-breeze via npm:
 
 `npm install aurelia-breeze --save`
+
+Then we configure the plugin as usual in our `configure(aurelia)` function (usually in `main.ts`)
 
 ```js
 export function configure(aurelia) {
@@ -15,10 +33,232 @@ export function configure(aurelia) {
     // ...
 ```
 
+From here on we can import `breeze` and use it.
+
 ```
 import breeze from 'breeze';
 
 let query = new breeze.EntityQuery();
+```
+
+## Breeze REST server API
+
+We can use [breeze-rest-adapter](https://github.com/mradamlacey/breeze-rest-adapter) which is "A dataservice adapter for BreezeJS to connect to a generic REST API".
+
+### Installation
+
+Simply include the data service adapter script file: 
+`breezeRestDataServiceAdapter.js`
+Include the JsonResultsAdapter script file: `breezeRestJsonResultsAdapter.js`
+Include the following code when setting up your Breeze Data Service:
+
+`breeze.config.initializeAdapterInstances({dataService: "REST"});`
+
+```json
+  // ...
+  "orderLineItems": [
+      {
+          productId: 3,
+          amount: 1,
+          "entityAspect": {
+              "entityType": "OrderLineItem",
+              "entityState": "Added"
+          }
+      },
+      // ...
+```
+
+The data service adapter will look at all the changed entities in the local cache and build an object graph (based on the defined relationships in the metadata).
+
+Additionally this adapter makes the assumption that the backend service provides an `entityAspect` object that is a property of every entity. This is a helper property that allows the adapter to know which type of entity is being provided.
+
+You may also look at the generic [Edmunds sample](http://breeze.github.io/doc-samples/edmunds.html) for inspiration.
+Here is a [SPA example](http://breeze.github.io/doc-samples/intro-to-spa-ruby.html) using a [Ruby on Rails](http://rubyonrails.org/) Breeze adapter.
+
+## Breeze overview
+
+Breeze revolves around the concept of *Entities*, which are domain models that keep in sync with an underlying data store via en *Entity Manager*.
+
+This is very similar how regular ORMs often operate such as [aurelia-orm entities](aurelia-orm.spoonx.org/entities.html).
+
+## Entity Manager
+
+The [EntityManager](http://breeze.github.io/doc-js/entitymanager-and-caching.html) is the gateway to the persistence service and holds a cache of entities that the application is working with, including entities that have been queried, added, updated, and marked for deletion. The `EntityManager` is the core class in Breeze, and this page discusses its primary capabilities.
+
+The `EntityManager` serves three main functions:
+
+- It communicates with the persistence service.
+- It queries and saves entities.
+- It holds entities in a local container called the entity cache.
+
+When the client application requires data, it typically calls a method on an instance of an `EntityManager`. The `EntityManager` establishes communication channels, sets up the client’s security context, serializes and deserializes data, and regulates the application-level flow of traffic with the persistence service.
+
+### Create an EntityManager
+
+A query can’t execute itself. We’ll need a Breeze `EntityManager`. The EntityManager is a gateway to the persistence service which will execute the query on the backend and return query results in its response. The next few lines give us an `EntityManager`:
+
+```js
+let serviceName = 'breeze/todos'; // route to the Web Api controller
+let manager = new breeze.EntityManager(serviceName);
+```
+
+The `serviceName` identifies the service end-point, the route to the Web API controller `breeze/todos`
+
+### Todos query
+
+We’re ready to write the first query. The `Todo` app query method is called `getAllTodos` and it looks like this:
+
+```
+function getAllTodos(includeArchived) {
+    var query = breeze.EntityQuery // [1]
+            .from("Todos")         // [2]
+            .orderBy("CreatedAt"); // [3]
+
+    // ... snip ...
+
+    return manager.executeQuery(query);
+};
+```
+
+- creates a new Breeze `EntityQuery` object
+- aims the `query` at a method on the Web API controller named `Todos` that returns `Todo` items.
+- adds an `orderBy` clause that tells the remote service to sort results by the `CreatedAt` property before sending them to the client.
+
+The manager makes a promise. We execute the query with the EntityManager
+
+`return manager.executeQuery(query);`
+
+The `executeQuery` method does not return `Todos`. It can’t return `Todos`. A JavaScript client cannot freeze the browser and wait for the server to reply. The `executeQuery` method does its thing asynchronously.
+
+It must return something and it must do so immediately. 
+
+### Accepting a promise
+
+A caller of the `dataservice.getAllTodos` method typically attaches both a success and failure callback to the returned promise. Here’s how the `Todo` app's ViewModel calls `getAllTodos`:
+
+```ts
+getTodos() {
+  dataservice.getAllTodos(includeArchived)
+    .then(querySucceeded)
+    .fail(queryFailed);
+}
+```
+
+### Process the query results
+
+If the query returns from the server without error, the promise calls the ViewModel’s `querySucceeded` method, passing in a data packet with query results from the EntityManager.
+
+Get them from the `data.results` property as the ViewModel does. In this example, each `Todo` item is pushed into an observable array bound to a list (via `repeat.for`) in the view.
+
+```js
+class Todos {
+  items = []; // bound to view in repeat.for
+
+  querySucceeded(data) {
+    ...
+    data.results.forEach((item) => {
+        ...
+        this.items.push(item);
+    });
+    ...
+  }
+}
+```
+
+And just like that, the view fills with Todos.
+
+## Entity Manager Factory
+
+`entity-manager-factory.ts`
+
+```js
+import settings from './settings';
+import { logChanges } from './logger';
+
+@singleton
+export class EntityManagerFactory {
+  /**
+  + Creates Breeze EntityManager instances.
+  */
+  constructor() {
+    return Promise.resolve(this.copy());
+  }
+
+  copy() {
+    const copy = this.entityManager.createEmptyCopy();
+    copy.entityChanged.subscribe(logChanges);
+    return copy;
+  }
+
+  get entityManager() {
+    this._entityManager = new breeze.EntityManager(settings.serviceName);
+    return this._entityManager.fetchMetadata()
+      .then(() => this.copy());
+  };
+}
+```
+
+### Logger
+
+We introduce a `logChanges` function to keep track of entity data changes for debugging purposes.
+
+```js
+// log entity changes to the console
+export function logChanges(data) {
+  var message = 'Entity Changed.  Entity: ' + (data.entity ? data.entity.entityType.name + '/' + data.entity.entityAspect.getKey().toString() : '?') + ';  EntityAction: ' + data.entityAction.getName() + '; ';
+  if (data.entityAction === breeze.EntityAction.PropertyChange) {
+    var pcArgs = data.args;
+    message += 'PropertyName: ' + (pcArgs.propertyName || 'null') + '; Old Value: ' + (pcArgs.oldValue ? pcArgs.oldValue.toString() : 'null') + '; New Value: ' + (pcArgs.newValue ? pcArgs.newValue.toString() : 'null') + ';';
+  }
+  if (data.entityAction === breeze.EntityAction.EntityStateChange) {
+    message += 'New State: ' + data.entity.entityAspect.entityState.getName() + ';';
+  }
+  console.log(message);
+};
+```
+
+## Entities and domain models
+
+“Entity-ness”
+A domain model object represents something significant in the application domain. A “Customer”, for example, has data properties (“Name”), relationships to other entities (“Orders”) and perhaps some business logic (“isGoldCustomer”). We bind these object members to UI controls and reason about them in application code. They are what matters most to users and other application stakeholders. They define “Customer-ness”.
+
+The “Customer” is also an entity, a long-lived object with a permanent key. We can fetch it from a database, hold it in cache, check for changes, validate, and save it. When the developer’s attention turns to whether an object has changed or not, what its values used to be, how it is persisted, whether it has validation errors … the developer is thinking about the object’s entity nature. Breeze is responsible for the object’s entity nature, its “entity-ness”. You access an entity’s entity nature through its `entityType` and `entityAspect` properties.
+
+### Entity type
+
+Every Breeze entity instance has an `entityType` property that returns an EntityType object which is the metadata that describe its properties and other facts about the type.
+
+### Entity aspect
+
+A Breeze entity is “self-tracking”. It maintains its own entity state, and the means to change that state, in the EntityAspect object returned by its entityAspect property.
+
+An object becomes a Breeze entity when it acquires its EntityAspect which it does when it
+
+first enters the cache as a result of a query or import OR
+is created with the EntityType.createEntity factory method OR
+is explictly added or attached to an EntityManager
+
+### Creating a new entity
+
+Breeze creates new entity instances on two primary occasions: (1) when it “materializes” entities from query results and (2) when you ask it to create a brand new entity.
+
+Entity materialization is largely hidden from the developer. You issue a query; you get entities back. Behind the scenes Breeze converts the stream of model object data into entities in cache. The developer only becomes aware of entity creation details when making new model objects.
+
+### EntityManager.createEntity
+
+The standard approach is to call the Breeze `createEntity` factory function on an `EntityManager`:
+
+```
+let newCustomer = manager.createEntity('Customer', {name: 'Acme'});
+```
+
+The first parameter, `'Customer'`, is the name of the `EntityType`
+In this example, we also passed in an optional property `initializer`, a hash that sets the new customer’s name: `{name: 'Acme'}`. You may not need an initializer but it is often the easiest way to simultaneously create and initialize a new entity.
+
+If the entity key is client-generated, then you must specify the key in the initializer or you’ll likely get an exception.
+
+```js
+let newOrderDetail = manager.createEntity('OrderDetail', {orderId: oid, productId: pid});
 ```
 
 ### Lookups
@@ -179,46 +419,6 @@ export class ListViewModel {
     this.router.navigate(this.route + '/' + id);
   }
 }
-```
-
-`entity-manager-factory.ts`
-
-```js
-import settings from './settings';
-
-var entityManager;
-
-/**
-* Creates Breeze EntityManager instances.
-*/
-export function createEntityManager() {
-  if (entityManager) {
-    return Promise.resolve(copyEntityManager()); 
-  }
-
-  entityManager = new breeze.EntityManager(settings.serviceName);
-  return entityManager.fetchMetadata()
-    .then(() => copyEntityManager());
-}
-
-function copyEntityManager() {
-  var copy = entityManager.createEmptyCopy();
-  copy.entityChanged.subscribe(logChanges);
-  return copy;
-}
-
-// log entity changes to the console for debugging purposes.
-function logChanges(data) {
-  var message = 'Entity Changed.  Entity: ' + (data.entity ? data.entity.entityType.name + '/' + data.entity.entityAspect.getKey().toString() : '?') + ';  EntityAction: ' + data.entityAction.getName() + '; ';
-  if (data.entityAction === breeze.EntityAction.PropertyChange) {
-    var pcArgs = data.args;
-    message += 'PropertyName: ' + (pcArgs.propertyName || 'null') + '; Old Value: ' + (pcArgs.oldValue ? pcArgs.oldValue.toString() : 'null') + '; New Value: ' + (pcArgs.newValue ? pcArgs.newValue.toString() : 'null') + ';';
-  }
-  if (data.entityAction === breeze.EntityAction.EntityStateChange) {
-    message += 'New State: ' + data.entity.entityAspect.entityState.getName() + ';';
-  }
-  console.log(message);
-};
 ```
 
 ### Orders
