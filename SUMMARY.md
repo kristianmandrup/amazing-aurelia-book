@@ -35,4 +35,5 @@
 * [Binding models to RethinkDB](binding-models-to-rethinkdb.md)
 * [Best practices](best-practices.md)
 * [Creating a plugin](creating-a-plugin.md)
+* [Using content selectors](using-content-selectors.md)
 
