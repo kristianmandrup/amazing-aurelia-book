@@ -1,8 +1,23 @@
 # Advanced views
 
+- using ref
 - View model life cycle
 - Custom view loading
 - Custom view strategies
+
+## Using ref
+
+Using `ref` adds that name to your view model, as a reference to that entity. This enables:
+
+- `ref="someIdentifier"` or `element.ref="someIdentifier"` - This gets you the HTML element from the DOM, which means that you can manipulate it from both your HTML and your javascript.
+
+- `attribute-name.ref="someIdentifier"` - This gets you the view model for a custom attribute. Since this is a javascript object, you can do anything with it you would expect.
+
+- `view-model.ref="someIdentifier"` - This gets you the view model for a custom attribute. Again, this is just javascript, hack away!
+
+- `view.ref="someIdentifier"` - This gets you the View object behind the custom element's view. As the docs say, this is not the DOM element (you use ref for that) but rather a class from the Aurelia framework that you can leverage to query and manipulate the view. 
+
+- `controller.ref="someIdentifier"` - This gets you the controller for the custom element.
 
 ## View model life cycle
 
