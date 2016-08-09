@@ -32,4 +32,5 @@
 * [View data binding](view-data-binding.md)
 * [I18n and localisation](i18n-and-localisation.md)
 * [IoC and dependency injection](ioc-and-dependency-injection.md)
+* [Binding models to RethinkDB](binding-models-to-rethinkdb.md)
 
