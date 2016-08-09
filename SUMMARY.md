@@ -34,4 +34,5 @@
 * [IoC and dependency injection](ioc-and-dependency-injection.md)
 * [Binding models to RethinkDB](binding-models-to-rethinkdb.md)
 * [Best practices](best-practices.md)
+* [Creating a plugin](creating-a-plugin.md)
 
