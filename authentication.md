@@ -4,12 +4,12 @@ Using [aurelia-auth](https://github.com/paulvanbladel/aurelia-auth)
 
 *aurelia-auth* is a port of the great [Satellizer](https://github.com/sahat/satellizer/) library to ES6 and packaged as an Aurelia plugin.
 
-aurelia-auth does not use any cookies but relies on a JWT (json web token) stored in the local storage of the browser.
-Both local storage as well as session storage can be used (via the aurelia-auth security configuration file).
+*aurelia-auth* does not use any cookies but relies on a JWT (json web token) stored in the local storage of the browser.
+Both local storage as well as session storage can be used (via the *aurelia-auth* security configuration file).
 
 The aurelia token will be sent automatically to your API when the user is authenticated.
 
-aurelia-auth is a simple service with following interface:
+*aurelia-auth* is a simple service with following interface:
 
 - `login(email, password)`
 - `logout(redirectUri)`
@@ -153,7 +153,7 @@ export class CustomHttpClient extends HttpClient {
 }
 ```
 
-no specialised aurelia plugins needed for supporting multiple endpoints !
+No specialised aurelia plugins needed for supporting multiple endpoints!
 
 We can consume this custom Http Client as follows:
 
@@ -183,15 +183,20 @@ export class Customer2{
 
 Provide a UI for a login, signup and profile.
 
-See aurelia-auth-samples for more details.
+See [aurelia-auth-samples]() for more details.
 
-Button actions are passed to the corresponding view model via a simple click.delegate:
+Button actions are passed to the corresponding view model via a simple 
+`click.delegate`:
 
+```html
 <button class="btn btn-block btn-google-plus" click.delegate="authenticate('google')">
           <span class="ion-social-googleplus"></span>Sign in with Google
 </button>
+```
+
 The login view model will speak directly with the aurelia-auth service, which is made available via constructor injection.
 
+```js
 import {AuthService} from 'aurelia-auth';
 import {inject} from 'aurelia-framework';
 @inject(AuthService)
@@ -222,18 +227,24 @@ export class Login{
         });
     }
 }
+```
+
 On the profile page, social media accounts can be linked and unlinked. For a nice UI experience, use if.bind for either showing the link or unlink button:
 
+```html
 <button class="btn btn-sm btn-danger" if.bind="profile.facebook" click.delegate="unlink('facebook')">
     <i class="ion-social-facebook"></i> Unlink Facebook Account
 </button>
 <button class="btn btn-sm btn-primary" if.bind="!profile.facebook" click.delegate="link('facebook')">
     <i class="ion-social-facebook"></i> Link Facebook Account
 </button>
+```
+
 Making the Aurelia Router authentication aware
 
 The logout and profile links are only shown when the user is authenticated, whereas the login link is only visible when the user is not authenticated.
 
+```html
 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
     <ul class="nav navbar-nav">
         <li repeat.for="row of router.navigation | authFilter: isAuthenticated" class="${row.isActive ? 'active' : ''}">
@@ -256,7 +267,9 @@ The logout and profile links are only shown when the user is authenticated, wher
         </li>
     </ul>
 </div>
-Menu items visibility can also be linked with the authFilter to the isAuthenticated value.
+```
+
+Menu items visibility can also be linked with the `authFilter` to the `isAuthenticated` value.
 
 In the router config function, you can specifify an auth property in the routing map indicating wether or not the user needs to be authenticated in order to access the route:
 
@@ -286,11 +299,11 @@ In the above example the customer route is only available for authenticated user
 
 At each step of authentication (login, logout, authenticate, signup, unlink), an event is published to Aurelia's event aggregator. The events published are as follows:
 
-login: `auth:login`
-logout: `auth:logout`
-authenticate: `auth:authenticate`
-signup: `auth:signup`
-unlink: `auth:unlink`
+- login: `auth:login`
+- logout: `auth:logout`
+- authenticate: `auth:authenticate`
+- signup: `auth:signup`
+- unlink: `auth:unlink`
 
 From [creating your first aurelia app from authentication to calling anapi](https://auth0.com/blog/creating-your-first-aurelia-app-from-authentication-to-calling-an-api/)
 
@@ -337,9 +350,9 @@ We'll now need to set up the application's routing configuration. Let's first se
   <template>
     <require from='./nav-bar'></require>
 
-    <nav-bar router.bind="router"></nav-bar>  
+    <nav-bar router.bind="router"></nav-bar>
 
-    <div class="container">      
+    <div class="container">
       <router-view></router-view>
     </div>
 
@@ -390,7 +403,7 @@ export class App {
 
 The HTTP configuration that aurelia-auth provides is what handles adding the JWT as a header if the user is authenticated. The httpClientConfig file has logic that checks for the existence of a token in localstorage and then adds an Authorization header with a value of Bearer <token> if one exists. The token will be sent for all HTTP requests to the API but will obviously only be needed for protected resources.
 
-We can keep our routing logic within the main app.js file, as is done in many Aurelia projects, but in our case, we'll put this configuration in a separate file called router-config.js that we are injecting. Let's set up this routing configuration:
+We can keep our routing logic within the main `app.js` file, as is done in many Aurelia projects, but in our case, we'll put this configuration in a separate file called `router-config.js` that we are injecting. Let's set up this routing configuration:
 
 ```js
 // client/src/router-config.js
@@ -441,9 +454,9 @@ export default class {
 }
 ```
 
-Aurelia gives us the ability to customize the navigation pipeline with some extensibility points, including an authorize route filter. Using this filter means we can specify which routes we would like authentication to be required for. Since our super-secret-quotes route needs to remain top secret until the user is logged in, we put auth: true in it. We hook into this filter by calling addPipelineStep, passing in the AuthorizeStep that is provided by the aurelia-auth plugin.
+Aurelia gives us the ability to customize the navigation pipeline with some extensibility points, including an `authorize` route filter. Using this filter means we can specify which routes we would like authentication to be required for. Since our `super-secret-quotes` route needs to remain top secret until the user is logged in, we put `auth: true` in it. We hook into this filter by calling `addPipelineStep`, passing in the `AuthorizeStep` that is provided by the _aurelia-auth_ plugin.
 
-With the configuration out of the way, let's get to coding the actual routes and their views! We'll need to have files that take care of each route in place before the app will work so you can comment out the routes in router-config.js that aren't ready yet.
+With the configuration out of the way, let's get to coding the actual routes and their views! We'll need to have files that take care of each route in place before the app will work so you can comment out the routes in `router-config.js` that aren't ready yet.
 
 ### Setting up Routes and Views
 
@@ -476,7 +489,7 @@ Let's start at the top and setup the navigation bar.
   ...
 ```
 
-Notice here that we're running a filter on the repeated navigation items with authFilter: `isAuthenticated`. This allows us to hide any nav menu items that are to be protected if the user isn't authenticated, and this is how we will hide the super-secret-quote menu item when the user isn't logged in. We're also conditionally showing the `Signup`, `Login`, and `Logout` links. See the GitHub repo for the rest of the markup.
+Notice here that we're running a filter on the repeated navigation items with authFilter: `isAuthenticated`. This allows us to hide any nav menu items that are to be protected if the user isn't authenticated, and this is how we will hide the `super-secret-quote` menu item when the user isn't logged in. We're also conditionally showing the `Signup`, `Login`, and `Logout` links. See the GitHub repo for the rest of the markup.
 
 ```js
 // client/src/nav-bar.js
@@ -814,8 +827,15 @@ logout() {
 
 That's it! You now have authentication with Auth0 in your Aurelia app.
 
-For more details, including how to protect certain route in your app, check out the Auth0 Aurelia docs. There you can also download a seed project to get started from scratch.
+For more details, including how to protect certain route in your app, check out the [Auth0 Aurelia docs](). There you can also download a seed project to get started from scratch.
 
 ### Wrapping Up
 
 Protecting routes that we want to limit to logged-in users is actually quite simple with the aurelia-auth plugin because we can set the app up such that, if users aren't logged in, they can't see or reach protected routes. If, for whatever reason, users were able to get to a route they shouldn't be at and they don't have a valid JWT, any HTTP requests they make will be denied by the server. Properly authenticated users will have a valid JWT in localstorage, which will be sent along as a header with all the requests they make which will give them access to protected resources.
+
+## Auth0 examples
+
+- [Adding auth0 to the aurelia tutorial](https://shellmonger.com/2015/07/14/adding-auth0-to-the-aurelia-tutorial/)
+- [Social authentication with Passport.js and Node](https://shellmonger.com/2015/05/19/social-authentication-node-style/)
+
+
