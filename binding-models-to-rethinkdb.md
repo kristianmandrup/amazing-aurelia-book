@@ -45,7 +45,32 @@ You can use `rows` with `repeat.for` to dynamically display the row data of the 
 </template>
 ```
 
+### Adding UI virtualization
 
+[aurelia-ui-virtualization](https://github.com/aurelia/ui-virtualization) is a plugin which provides infinite list display using advanced UI virtualization techniques to reuse the same DOM elements for display of huge lists of data to ensure fast frame rates and minimal DOM operations.
+
+Look at this [demo](http://aurelia.io/ui-virtualization/) to get an impression of its power!
+
+### Plugin installation & config
+
+We install via npm
+
+`npm i aurelia-ui-virtualization --save`
+
+Then we configure the plugin
+
+```js
+export function configure(aurelia) {
+  aurelia.use
+    // ...
+    .plugin('aurelia-ui-virtualization');
+```
+
+Then we simply replace the `repeat.for` with `virtual-repeat.for` :)
+
+`<ul virtual-repeat.for="row of rows">`
+
+Awesome!!
 
 
 
