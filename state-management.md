@@ -1,9 +1,153 @@
 # State management
 
-Using Breeze, ORMs, RethinkDB and other state management solutions.
+Using Models and Services and ORMs for state management.
 
-- [aurelia-breeze](https://github.com/jdanyow/aurelia-breeze)
-- [aurelia-orm](https://github.com/SpoonX/aurelia-orm)
+- Simple Models and JSON services
+- [Aurelia ORM](https://github.com/SpoonX/aurelia-orm)
+
+### Simple Models and JSON services
+
+From [solving-the-m-in-mvvm](http://patrickwalters.net/my-best-practices-for-aurelia-solving-the-m-in-mvvm/)
+
+In the past with JavaScript we've been limited by how well we can solve for the model aspect in the MVVM pattern. Traditionally we've been limited to creating a function that we pass off as a class or using a more robust client-side ORM such as Breeze.js. The function was a little dumbed down and sometimes an ORM is overkill when starting a new project.
+
+What about the middle ground where we want to have a model we can work with?
+
+### ES6 Classes to the rescue
+With the newest standard being approved we now have ES6 classes. With classes we can have a single area to start with to extend our models.
+
+```
+export class Person {  
+  constructor(data){
+    Object.assign(this, data);
+  }
+}
+```
+
+### Object.assign()
+Now we've created a model for a `Person`. We know that there is some JSON we are getting from the server and we want to 'cast' that data into an instance of a `Person`. We can use `Object.assign()`` here in our constructor to tell our model that whatever properties the server is returning we want to keep. This means that if our person's data is returned with a property like firstName it will also exist in our model. Then we can extend it.
+
+That works great, but doesn't really offer us any tangible benefits yet.
+
+### Adding properties
+Our person is lonely and broke. Whenever we create a new person let's give them no money whatsoever and make them understand the hard lessons of life and respect what it means to earn a buck -
+
+```
+export class Person {  
+  constructor(data){
+    Object.assign(this, data);
+    this.money = 0;
+  }
+}
+```
+
+Now anywhere that we reference our person in our application we can rely on him to have a property called `money`.
+
+But what if we want to give our person some money?
+
+### Fat models
+Let's fatten up our model with accessors and behaviour
+
+```
+export class Person {  
+  constructor(data){
+    Object.assign(this, data);
+    this.money = 0;
+  }
+  giveMoney(amount){
+      this.money += amount;
+  }
+}
+```
+
+We want to put some business logic in for when we give money to our person.
+
+Imagine that when we give our person some money we also want to improve his credit score.
+
+```
+export class Person {  
+  constructor(data){
+    Object.assign(this, data);
+    this.money = 0;
+    this.creditScore = 500;
+  }
+  giveMoney(amount){
+      this.money += amount;
+      this.creditScore += amount / 2;
+  }
+}
+```
+
+Now whenever we give a person some money the appropriate change to credit score is applied.
+
+### Casting our JSON as a Person
+We will now use the `HttpClient` that Aurelia provides to retrieve the JSON data from the server, then 'cast' the data to our `Person` class for each entry retrieved.
+
+### Service
+Let's create a simple service which retrieves some people and casts them as a `Person`.
+
+```
+import {HttpClient} from 'aurelia-http-client';
+import {Person} from './models';
+
+export class PersonService {
+  constructor(){
+      this.http = new HttpClient().configure(x=> {
+        x.withReviver((k,v) => {
+          return typeof v === 'object' ? new Person(v) : v;
+        });
+    });
+  }
+  getPeople(){
+      return this.http.get('/people');
+  }
+}
+```
+
+We import our `Person` from our `models.js` file where we exported it.
+We instantiated an instance of the `HttpClient` provided by Aurelia.
+
+We configure our `HttpClient` to always use a `reviver`.
+We added a method on our service to use the HttpClient we've created to get people from our resource on the server.
+
+### Reviver
+A `reviver` will be called once for each item in the array when our JSON is parsed from the server. By using `withReviver()`` and passing in a function that casts the value to a Person, it helps us do something like this:
+
+```
+JSON.parse(response, (key, value) => {
+  if (typeof value === 'object') {
+      return new Person(value);
+  }
+  return value;
+});
+```
+
+### Sample JSON payload
+If you want to try this out, use this example JSON payload -
+
+`[{"name": "Jane"},{"name": "Bob"}]`
+
+We've created a model, we've used the `HttpClient` to cast it, and we've touched on some topics that are a bit risque.
+
+Let's end on a high note by showing our usage from our view-model
+
+```
+import {PersonService} from './person-service';
+import {inject} from 'aurelia-framework';
+
+@inject(PersonService)
+export class MyViewModel {
+  constructor(personService){
+      this.jane = {};
+      this.personService = personService;
+      this.personService.getPeople().then(response => {
+        this.jane = response.content[0];
+        this.jane.giveMoney(100);
+    });
+  }
+}
+```
+
 
 ## Aurelia ORM
 
