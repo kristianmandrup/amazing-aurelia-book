@@ -10,16 +10,17 @@
 
 Using rethinkDB bindtable is super simple. You simple include the `@bindable` decorator and use it on a VM to add a `bindable` which binds to a rethinkDB table via a socket connection to a server.
 
-You pass `@bindable` the name of the table, such as `questions` and optionally the server host (default: `localhost`).
+You tell `@bindable` the name of the table, such as `questions` and optionally the server host (default: `localhost`).
+
+`@bindable` will auto-inject `Bindable` (first argument in constructor) and add the `tableName` and `socketHost` on the constructor itself (ie. as static properties).
 
 ```js
 import {bindable} from 'aurelia-rethink-bindtable';
 
 @bindable('questions', 'www.mydomain.com')
 export class Questions {
-  constructor(bindable, filters) {
-    super({logging: true});
-    this.bindable = bindable;
+  constructor(bindable) {
+    this.bound = bindable.configure({logging: true, socketHost: Questions.socketHost});
   }
 
   selectRow(row) {
@@ -32,7 +33,9 @@ export class Questions {
 }
 ```
 
-The `bindable` decorator also creates two getter methods `rows` and `table` which delegate to the bindable properties of the same name. 
+The `bindable` decorator creates two getter methods `rows` and `table` which delegate to the `this.bound` properties of the same name, 
+(ie `this.bound.rows` and `this.bound.table`) by convention.
+
 You can use `rows` with `repeat.for` to dynamically display the row data of the table.
 
 ```html
